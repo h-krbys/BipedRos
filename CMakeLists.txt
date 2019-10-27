@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
   choreonoid
   #choreonoid_rosplugin
-  )
+)
 
 if(CHOREONOID_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD ${CHOREONOID_CXX_STANDARD})
@@ -20,11 +20,11 @@ endif()
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${CHOREONOID_INCLUDE_DIRS}
-  )
+)
 
 link_directories(
   ${CHOREONOID_LIBRARY_DIRS}
-  )
+)
 
 function(add_cnoid_simple_controller)
   set(target ${ARGV0})
@@ -36,5 +36,5 @@ function(add_cnoid_simple_controller)
   install(TARGETS ${target} LIBRARY DESTINATION ${CHOREONOID_PLUGIN_SUBDIR}/simplecontroller)
 endfunction()
 
-add_subdirectory(src)
+add_subdirectory(sample)
 add_subdirectory(project)

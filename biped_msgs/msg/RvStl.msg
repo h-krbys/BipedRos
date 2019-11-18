@@ -1,8 +1,8 @@
 # robot name
 string name
 
-# "add" or "delete"
-string action
+# visualize marker
+bool enable
 
 # center pose of robot
 geometry_msgs/Point position

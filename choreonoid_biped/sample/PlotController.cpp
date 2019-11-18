@@ -32,7 +32,7 @@ public:
     biped_msgs::RvLine rv_line;
 
     rv_line.name    = "line1";
-    rv_line.action  = "add";
+    rv_line.enable  = true;
     rv_line.size    = 0.02;
     rv_line.color.r = 0;
     rv_line.color.g = 1;

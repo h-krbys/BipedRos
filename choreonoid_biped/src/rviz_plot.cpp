@@ -17,8 +17,8 @@ RvizPlot::RvizPlot() : resolution(100), arrow_ratio(5) {
     "rviz_plot/square", 10, &RvizPlot::setSquareCallback, this);
   sub_arrow = nh.subscribe<biped_msgs::RvArrow>(
     "rviz_plot/arrow", 10, &RvizPlot::setArrowCallback, this);
-  sub_stl = nh.subscribe<biped_msgs::RvStl>("rviz_plot/stl", 10,
-                                            &RvizPlot::setStlCallback, this);
+  sub_stl = nh.subscribe<biped_msgs::RvStl>(
+    "rviz_plot/stl", 10, &RvizPlot::setStlCallback, this);
 
   pub = nh.advertise<visualization_msgs::MarkerArray>(
     "visualization_marker_array", 1);
@@ -95,9 +95,9 @@ void RvizPlot::update() {
 
     marker_array.markers[i].type = visualization_msgs::Marker::POINTS;
 
-    if (itr->second.action == "add")
+    if (itr->second.enable)
       marker_array.markers[i].action = visualization_msgs::Marker::ADD;
-    if (itr->second.action == "delete")
+    else
       marker_array.markers[i].action = visualization_msgs::Marker::DELETE;
 
     marker_array.markers[i].scale.x = itr->second.size;
@@ -124,9 +124,9 @@ void RvizPlot::update() {
 
     marker_array.markers[i].type = visualization_msgs::Marker::LINE_STRIP;
 
-    if (itr->second.action == "add")
+    if (itr->second.enable)
       marker_array.markers[i].action = visualization_msgs::Marker::ADD;
-    if (itr->second.action == "delete")
+    else
       marker_array.markers[i].action = visualization_msgs::Marker::DELETE;
 
     marker_array.markers[i].scale.x = itr->second.size;
@@ -153,9 +153,9 @@ void RvizPlot::update() {
 
     marker_array.markers[i].type = visualization_msgs::Marker::LINE_STRIP;
 
-    if (itr->second.action == "add")
+    if (itr->second.enable)
       marker_array.markers[i].action = visualization_msgs::Marker::ADD;
-    if (itr->second.action == "delete")
+    else
       marker_array.markers[i].action = visualization_msgs::Marker::DELETE;
 
     marker_array.markers[i].scale.x = itr->second.size;
@@ -190,9 +190,9 @@ void RvizPlot::update() {
 
     marker_array.markers[i].type = visualization_msgs::Marker::LINE_STRIP;
 
-    if (itr->second.action == "add")
+    if (itr->second.enable)
       marker_array.markers[i].action = visualization_msgs::Marker::ADD;
-    if (itr->second.action == "delete")
+    else
       marker_array.markers[i].action = visualization_msgs::Marker::DELETE;
 
     marker_array.markers[i].scale.x = itr->second.size;
@@ -239,16 +239,14 @@ void RvizPlot::update() {
 
     marker_array.markers[i].type = visualization_msgs::Marker::ARROW;
 
-    if (itr->second.action == "add")
+    if (itr->second.enable)
       marker_array.markers[i].action = visualization_msgs::Marker::ADD;
-    if (itr->second.action == "delete")
+    else
       marker_array.markers[i].action = visualization_msgs::Marker::DELETE;
 
-    marker_array.markers[i].scale.x = itr->second.size; // shaft diameter
-    marker_array.markers[i].scale.y =
-      itr->second.size * ( 1 + arrow_ratio ); // head diameter
-    marker_array.markers[i].scale.z =
-      itr->second.size * arrow_ratio;   // head length
+    marker_array.markers[i].scale.x = itr->second.size;                       // shaft diameter
+    marker_array.markers[i].scale.y = itr->second.size * ( 1 + arrow_ratio ); // head diameter
+    marker_array.markers[i].scale.z = itr->second.size * arrow_ratio;         // head length
 
     marker_array.markers[i].color = itr->second.color;
 
@@ -269,9 +267,9 @@ void RvizPlot::update() {
 
     marker_array.markers[i].type = visualization_msgs::Marker::MESH_RESOURCE;
 
-    if (itr->second.action == "add")
+    if (itr->second.enable)
       marker_array.markers[i].action = visualization_msgs::Marker::ADD;
-    if (itr->second.action == "delete")
+    else
       marker_array.markers[i].action = visualization_msgs::Marker::DELETE;
 
     marker_array.markers[i].pose.position.x = itr->second.position.x;
@@ -280,10 +278,8 @@ void RvizPlot::update() {
     // quaternion
     marker_array.markers[i].pose.orientation.x = 0.0;
     marker_array.markers[i].pose.orientation.y = 0.0;
-    marker_array.markers[i].pose.orientation.z =
-      1.0 * sin(itr->second.orientation / 2.0);
-    marker_array.markers[i].pose.orientation.w =
-      cos(itr->second.orientation / 2.0);
+    marker_array.markers[i].pose.orientation.z = 1.0 * sin(itr->second.orientation / 2.0);
+    marker_array.markers[i].pose.orientation.w = cos(itr->second.orientation / 2.0);
 
     marker_array.markers[i].scale.x = 1.0;
     marker_array.markers[i].scale.y = 1.0;

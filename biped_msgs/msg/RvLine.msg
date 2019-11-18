@@ -1,10 +1,10 @@
 # marker name
 string name
 
-# "add" or "delete"
-string action
+# visualize marker
+bool enable
 
-# size & color of line
+# size & color
 float64 size
 std_msgs/ColorRGBA color
 

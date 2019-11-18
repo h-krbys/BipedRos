@@ -36,3 +36,11 @@ catkin_package( CATKIN_DEPENDS
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
+
+install(DIRECTORY meshes
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(DIRECTORY urdf
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

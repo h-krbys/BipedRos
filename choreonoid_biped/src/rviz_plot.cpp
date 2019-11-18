@@ -285,21 +285,21 @@ void RvizPlot::update() {
     marker_array.markers[i].scale.y = 1.0;
     marker_array.markers[i].scale.z = 1.0;
 
-    if (itr->second.name == "turtlebot") {
+    if (itr->second.name == "valkyrie_foot_r") {
       marker_array.markers[i].mesh_resource =
-        "package://robot_description/meshes/turtlebot.stl";
-      marker_array.markers[i].color.r = 0.8;
-      marker_array.markers[i].color.g = 0.8;
-      marker_array.markers[i].color.b = 0.8;
-      marker_array.markers[i].color.a = 0.5;
-    }
-    if (itr->second.name == "planter") {
-      marker_array.markers[i].mesh_resource =
-        "package://robot_description/meshes/planter.stl";
+        "package://biped_msgs/meshes/valkyrie_foot.stl";
       marker_array.markers[i].color.r = 0.0;
       marker_array.markers[i].color.g = 0.8;
       marker_array.markers[i].color.b = 0.0;
-      marker_array.markers[i].color.a = 1.0;
+      marker_array.markers[i].color.a = 0.5;
+    }
+    if (itr->second.name == "valkyrie_foot_l") {
+      marker_array.markers[i].mesh_resource =
+        "package://biped_msgs/meshes/valkyrie_foot.stl";
+      marker_array.markers[i].color.r = 0.8;
+      marker_array.markers[i].color.g = 0.0;
+      marker_array.markers[i].color.b = 0.0;
+      marker_array.markers[i].color.a = 0.5;
     }
 
     i++;

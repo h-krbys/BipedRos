@@ -1,18 +1,17 @@
 <?xml version="1.0"?>
 
 <package format="2">
-  <name>BipedRos</name>
+  <name>biped_msgs</name>
   <version>0.0.0</version>
   <description>
-    BipedCnoid ROS interface package with Choreonoid
+    Biped message type definition
   </description>
   <maintainer email="kuribayashi@stu.kobe-u.ac.jp">Hiroki Kuribayashi</maintainer>
   <license>MIT</license>
   <author email="kuribayashi@stu.kobe-u.ac.jp">Hiroki Kuribayashi</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>choreonoid</depend>
-  <depend>choreonoid_ros_plugin</depend>
+
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>

@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 2.8.12)
-project(BipedRos)
+project(choreonoid_biped)
+
+set(CMAKE_CXX_FLAGS "-std=c++11")
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   sensor_msgs
-  trajectory_msgs
-  visualization_msgs
-  message_generation
   choreonoid
   #choreonoid_rosplugin
+  biped_msgs
 )
 
 if(CHOREONOID_CXX_STANDARD)
@@ -19,19 +19,8 @@ else()
   add_compile_options(-std=c++11)
 endif()
 
-add_message_files(
-  FILES
-  RvLine.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
-)
-
-catkin_package(
-  CATKIN_DEPENDS roscpp visualization_msgs message_runtime
+catkin_package( CATKIN_DEPENDS
+  roscpp
 )
 
 include_directories(
@@ -53,6 +42,15 @@ function(add_cnoid_simple_controller)
     LIBRARY_OUTPUT_DIRECTORY ${CHOREONOID_PLUGIN_SUBDIR}/simplecontroller PREFIX "")
   install(TARGETS ${target} LIBRARY DESTINATION ${CHOREONOID_PLUGIN_SUBDIR}/simplecontroller)
 endfunction()
+
+add_executable(rviz_plot src/rviz_plot.cpp)
+add_dependencies(rviz_plot ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rviz_plot ${catkin_LIBRARIES})
+install(TARGETS rviz_plot
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 add_subdirectory(sample)
 add_subdirectory(project)

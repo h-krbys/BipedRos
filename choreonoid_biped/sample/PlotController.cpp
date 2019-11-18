@@ -2,7 +2,7 @@
 #include <cnoid/SpotLight>
 #include <ros/node_handle.h>
 #include <sensor_msgs/Joy.h>
-#include <BipedRos/RvLine.h>
+#include <biped_msgs/RvLine.h>
 #include <mutex>
 
 using namespace std;
@@ -10,20 +10,26 @@ using namespace cnoid;
 
 class PlotController : public SimpleController
 {
-  ros::NodeHandle nh;
-  ros::Publisher  pub;
+  ros::NodeHandle *nh;
+  ros::Publisher   pub;
 
 public:
   virtual bool initialize(SimpleControllerIO* io) override
   {
-    pub = nh.advertise<BipedRos::RvLine>("rviz_plot/line", 1);
+    std::string name = "simplecontroller";
+    int         argc = 0;
+    ros::init(argc, NULL, name);
+
+    // ROS Nodehandle
+    nh  = new ros::NodeHandle("");
+    pub = nh->advertise<biped_msgs::RvLine>("rviz_plot/line", 1);
 
     return true;
   }
 
   virtual bool control() override
   {
-    BipedRos::RvLine rv_line;
+    biped_msgs::RvLine rv_line;
 
     rv_line.name    = "line1";
     rv_line.action  = "add";

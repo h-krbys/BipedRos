@@ -12,7 +12,7 @@ items:
       data: 
         collisionDetection: false
         collisionDetector: AISTCollisionDetector
-        materialTableFile: "${SHARE}/default/materials.yaml"
+        materialTableFile: "/home/kuribayashi/cnoid_ws/devel/bin/../share/choreonoid-1.8/default/materials.yaml"
       children: 
         - 
           id: 2
@@ -27,6 +27,13 @@ items:
               1, 0, 0, 
               0, 1, 0, 
               0, 0, 1 ]
+            jointDisplacements: [ 
+               0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, 
+               0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, 
+               0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, 
+               0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, 
+               0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, 
+               0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000 ]
             jointPositions: [ 
                0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, 
                0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000, 
@@ -118,7 +125,6 @@ views:
     id: 3
     plugin: Base
     class: SceneView
-    mounted: true
     state: 
       editMode: false
       viewpointControlMode: thirdPerson
@@ -226,9 +232,9 @@ views:
           fieldOfView: 0.6978
           near: 0.01
           far: 100
-          eye: [ 1.92444104, -3.23837711, 1.44967858 ]
-          direction: [ -0.363757499, 0.849819279, -0.381428467 ]
-          up: [ -0.150094885, 0.350655388, 0.924398358 ]
+          eye: [ 2.39710947, -2.92138934, 1.38669068 ]
+          direction: [ -0.640985095, 0.655184667, -0.399838918 ]
+          up: [ -0.279614731, 0.285808962, 0.916585424 ]
         - 
           camera: [ System, Orthographic ]
           orthoHeight: 20
@@ -244,7 +250,6 @@ views:
     name: "Joystick"
     plugin: Base
     class: VirtualJoystickView
-    mounted: true
   - 
     id: 6
     plugin: Body
@@ -293,6 +298,10 @@ toolbars:
     speedScale: 1
     syncToOngoingUpdates: true
     autoExpansion: true
+  "BodyBar": 
+    current: 2
+  "LeggedBodyBar": 
+    stanceWidth: 0.15
   "KinematicsBar": 
     mode: AUTO
     enablePositionDragger: true
@@ -301,10 +310,6 @@ toolbars:
     snapDistance: 0.025
     penetrationBlockDepth: 0.0005
     lazyCollisionDetectionMode: true
-  "BodyBar": 
-    current: 2
-  "LeggedBodyBar": 
-    stanceWidth: 0.15
   "BodyMotionGenerationBar": 
     autoGenerationForNewBody: true
     balancer: false
@@ -341,6 +346,9 @@ toolbars:
 Body: 
   "BodyMotionEngine": 
     updateJointVelocities: false
+  "BodySelectionManager": 
+    currentBodyItem: 2
+    currentLink: "pelvis"
   "EditableSceneBody": 
     editableSceneBodies: 
       - 
@@ -370,12 +378,12 @@ viewAreas:
     contents: 
       type: splitter
       orientation: horizontal
-      sizes: [ 352, 1497 ]
+      sizes: [ 176, 746 ]
       children: 
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 557, 556 ]
+          sizes: [ 483, 482 ]
           children: 
             - 
               type: pane
@@ -388,34 +396,16 @@ viewAreas:
         - 
           type: splitter
           orientation: vertical
-          sizes: [ 796, 317 ]
+          sizes: [ 690, 275 ]
           children: 
             - 
-              type: splitter
-              orientation: horizontal
-              sizes: [ 699, 792 ]
-              children: 
-                - 
-                  type: pane
-                  views: [ 6, 7, 4 ]
-                  current: 4
-                - 
-                  type: pane
-                  views: [ 3 ]
-                  current: 3
+              type: pane
+              views: [ 6, 7, 4 ]
+              current: 4
             - 
-              type: splitter
-              orientation: horizontal
-              sizes: [ 898, 593 ]
-              children: 
-                - 
-                  type: pane
-                  views: [ 2, 9 ]
-                  current: 2
-                - 
-                  type: pane
-                  views: [ 5 ]
-                  current: 5
+              type: pane
+              views: [ 2, 9 ]
+              current: 2
 layoutOfToolBars: 
   rows: 
     - 

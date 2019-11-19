@@ -19,7 +19,7 @@ class PlotController : public SimpleController
   std::vector<double> qold;
 
   ros::NodeHandle     *nh;
-  ros::Publisher       pubCop, pubSim;
+  ros::Publisher       pubJoint, pubBody, pubCop, pubSim;
   geometry_msgs::Point point;
   std_msgs::Float64    data;
 
@@ -42,8 +42,9 @@ public:
     ros::init(argc, argv, "simplecontroller");
     nh = new ros::NodeHandle("");
 
-    pubCop = nh->advertise<geometry_msgs::Point>("/simulation/cop", 1000);
-    pubSim = nh->advertise<std_msgs::Float64>("/simulation/time", 1000);
+    pubCop   = nh->advertise<geometry_msgs::Point>("/simulation/cop", 1000);
+    pubSim   = nh->advertise<std_msgs::Float64>("/simulation/time", 1000);
+    pubJoint = nh->advertise<std_msgs::Float64MultiArray>("/simulation/joint", 1000);
 
     t = 0.0;
 
@@ -52,26 +53,27 @@ public:
 
   virtual bool control() override
   {
-    if(t < 0.5) {
-      point.x = 1.0;
-      point.y = 1.0;
-      point.z = 1.0;
-      pubCop.publish(point);
+    point.x = 1.0;
+    point.y = 1.0;
+    point.z = 1.0;
+    pubCop.publish(point);
 
-      data.data = t;
-      printf("A\n");
-      pubSim.publish(data);
-      printf("B\n");
+    qref[10] += 0.1 * dt;
 
-      for(int i = 0; i < ioBody->numJoints(); ++i) {
-        Link * joint = ioBody->joint(i);
-        double q     = joint->q();
-        double dq    = ( q - qold[i] ) / dt;
-        joint->dq_target() = ( qref[i] - q ) * pgain + ( 0.0 - dq ) * dgain;
-        qold[i]            = q;
-      }
-      printf("%lf\n", t);
+    std_msgs::Float64MultiArray arr;
+    for(int i = 0; i < ioBody->numJoints(); ++i) {
+      Link * joint = ioBody->joint(i);
+      double q     = joint->q();
+      double dq    = ( q - qold[i] ) / dt;
+      joint->dq_target() = ( qref[i] - q ) * pgain + ( 0.0 - dq ) * dgain;
+      qold[i]            = q;
+
+      arr.data.push_back(q);
     }
+    pubJoint.publish(arr);
+
+    data.data = t;
+    pubSim.publish(data);
 
     t += dt;
 

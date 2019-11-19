@@ -11,8 +11,8 @@ RvizPublisher::RvizPublisher(){
     "/simulation/time", 1000, &RvizPublisher::callbackSimulation, this);
   // subPlayback = nh.subscribe<std_msgs::Float64>(
   //   "/playback/time", 10, &RvizPublisher::callbackPlayback, this);
-  subBody = nh.subscribe<geometry_msgs::Pose>(
-    "/simulation/body", 1000, &RvizPublisher::callbackBody, this);
+  subPose = nh.subscribe<geometry_msgs::Pose>(
+    "/simulation/pose", 1000, &RvizPublisher::callbackPose, this);
   subJoint = nh.subscribe<std_msgs::Float64MultiArray>(
     "/simulation/joint", 1000, &RvizPublisher::callbackJoint, this);
   subCop = nh.subscribe<geometry_msgs::Point>(
@@ -20,7 +20,7 @@ RvizPublisher::RvizPublisher(){
 
   // publisher
   pubJoint = nh.advertise<sensor_msgs::JointState>("/marker/joint", 1);
-  pubBody  = nh.advertise<visualization_msgs::Marker>("/marker/body", 1);
+  pubPose  = nh.advertise<visualization_msgs::Marker>("/marker/body", 1);
   pubCop   = nh.advertise<visualization_msgs::Marker>("/marker/cop", 1);
 
   // initialize
@@ -100,7 +100,7 @@ void RvizPublisher::callbackSimulation(const std_msgs::Float64::ConstPtr &t){
   publishJoint();
 }
 
-void RvizPublisher::callbackBody(const geometry_msgs::Pose::ConstPtr &body){
+void RvizPublisher::callbackPose(const geometry_msgs::Pose::ConstPtr &body){
   tf::Vector3 p(body->position.x,
                 body->position.y,
                 body->position.z);
@@ -117,7 +117,6 @@ void RvizPublisher::callbackBody(const geometry_msgs::Pose::ConstPtr &body){
 }
 
 void RvizPublisher::callbackJoint(const std_msgs::Float64MultiArray::ConstPtr &joint){
-  printf("callback\n");
   this->joint[0]  =  joint->data[18]; // hokuyo_joint
   this->joint[1]  =  joint->data[12]; // torsoYaw
   this->joint[2]  =  joint->data[13]; // torsoPitch
@@ -171,13 +170,9 @@ void RvizPublisher::callbackCop(const geometry_msgs::Point::ConstPtr &cop){
 
 void RvizPublisher::publishJoint(){
   js.header.stamp = ros::Time::now();
-
-  printf("publish joint\n");
   for(int i = 0; i < 43; i++) {
     js.position[i] = joint[i];
-    printf("%2d: %+1.4lf\n", i, js.position[10] );
   }
-
   pubJoint.publish(js);
 }
 

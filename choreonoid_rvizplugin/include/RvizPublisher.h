@@ -13,9 +13,10 @@
 #include <memory>
 
 struct PlotData {
-  float           joint[43];
-  Eigen::Vector3f cop, com, icp;
-  Eigen::Vector3f foot_r, foot_l;
+  geometry_msgs::Pose pose;
+  float               joint[43];
+  Eigen::Vector3f     cop, com, icp;
+  Eigen::Vector3f     foot_r, foot_l;
 };
 
 class RvizPublisher
@@ -29,22 +30,22 @@ public:
   void callbackSimulation(const std_msgs::Float64::ConstPtr &t);
   void callbackPlayback(const std_msgs::Float64::ConstPtr &t);
 
-  void callbackBody(const geometry_msgs::Pose::ConstPtr &body);
+  void callbackPose(const geometry_msgs::Pose::ConstPtr &body);
   void callbackJoint(const std_msgs::Float64MultiArray::ConstPtr &joint);
   void callbackCop(const geometry_msgs::Point::ConstPtr &cop);
 
   void publishJoint();
-  void publishBody();
+  void publishPose();
   void publishCop();
 
 private:
   ros::NodeHandle nh;
 
   ros::Subscriber subTimeStep, subSimulation, subPlayback;
-  ros::Subscriber subBody, subJoint;
+  ros::Subscriber subPose, subJoint;
   ros::Subscriber subCop;
 
-  ros::Publisher pubBody, pubJoint;
+  ros::Publisher pubPose, pubJoint;
   ros::Publisher pubCop;
 
   float           joint[43];

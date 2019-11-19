@@ -19,7 +19,7 @@ class PlotController : public SimpleController
   std::vector<double> qold;
 
   ros::NodeHandle     *nh;
-  ros::Publisher       pubJoint, pubBody, pubCop, pubSim;
+  ros::Publisher       pubJoint, pubPose, pubCop, pubSim;
   geometry_msgs::Point point;
   std_msgs::Float64    data;
 
@@ -37,14 +37,19 @@ public:
     }
     qold = qref;
 
+    for (int i = 0; i < ioBody->numLinks(); ++i) {
+      io->enableInput(io->body()->link(i), LINK_POSITION);
+    }
+
     int    argc = 0;
     char** argv = 0;
     ros::init(argc, argv, "simplecontroller");
     nh = new ros::NodeHandle("");
 
+    pubPose  = nh->advertise<geometry_msgs::Pose>("/simulation/pose", 1000);
+    pubJoint = nh->advertise<std_msgs::Float64MultiArray>("/simulation/joint", 1000);
     pubCop   = nh->advertise<geometry_msgs::Point>("/simulation/cop", 1000);
     pubSim   = nh->advertise<std_msgs::Float64>("/simulation/time", 1000);
-    pubJoint = nh->advertise<std_msgs::Float64MultiArray>("/simulation/joint", 1000);
 
     t = 0.0;
 
@@ -71,6 +76,17 @@ public:
       arr.data.push_back(q);
     }
     pubJoint.publish(arr);
+
+    geometry_msgs::Pose pose;
+    pose.position.x = ioBody->rootLink()->translation().x();
+    pose.position.y = ioBody->rootLink()->translation().y();
+    pose.position.z = ioBody->rootLink()->translation().z();
+    Quaternion q(ioBody->rootLink()->rotation() );
+    pose.orientation.x = q.x();
+    pose.orientation.y = q.y();
+    pose.orientation.z = q.z();
+    pose.orientation.w = q.w();
+    pubPose.publish(pose);
 
     data.data = t;
     pubSim.publish(data);

@@ -2,52 +2,78 @@
 #include <cnoid/SpotLight>
 #include <ros/node_handle.h>
 #include <sensor_msgs/Joy.h>
-#include <biped_msgs/RvLine.h>
+#include "../include/RvizPublisher.h"
 #include <mutex>
 
 using namespace std;
 using namespace cnoid;
 
+const double pgain = 10;
+const double dgain = 0.0;
+
 class PlotController : public SimpleController
 {
-  ros::NodeHandle *nh;
-  ros::Publisher   pub;
+  BodyPtr             ioBody;
+  double              t, dt;
+  std::vector<double> qref;
+  std::vector<double> qold;
+
+  ros::NodeHandle     *nh;
+  ros::Publisher       pubCop, pubSim;
+  geometry_msgs::Point point;
+  std_msgs::Float64    data;
 
 public:
   virtual bool initialize(SimpleControllerIO* io) override
   {
-    std::string name = "simplecontroller";
-    int         argc = 0;
-    ros::init(argc, NULL, name);
+    ioBody = io->body();
+    dt     = io->timeStep();
 
-    // ROS Nodehandle
-    nh  = new ros::NodeHandle("");
-    pub = nh->advertise<biped_msgs::RvLine>("rviz_plot/line", 1);
+    for(int i = 0; i < ioBody->numJoints(); ++i) {
+      Link* joint = ioBody->joint(i);
+      joint->setActuationMode(Link::JOINT_VELOCITY);
+      io->enableIO(joint);
+      qref.push_back(joint->q() );
+    }
+    qold = qref;
+
+    int    argc = 0;
+    char** argv = 0;
+    ros::init(argc, argv, "simplecontroller");
+    nh = new ros::NodeHandle("");
+
+    pubCop = nh->advertise<geometry_msgs::Point>("/simulation/cop", 1000);
+    pubSim = nh->advertise<std_msgs::Float64>("/simulation/time", 1000);
+
+    t = 0.0;
 
     return true;
   }
 
   virtual bool control() override
   {
-    biped_msgs::RvLine rv_line;
+    if(t < 0.5) {
+      point.x = 1.0;
+      point.y = 1.0;
+      point.z = 1.0;
+      pubCop.publish(point);
 
-    rv_line.name    = "line1";
-    rv_line.enable  = true;
-    rv_line.size    = 0.02;
-    rv_line.color.r = 0;
-    rv_line.color.g = 1;
-    rv_line.color.b = 0;
-    rv_line.color.a = 1;
+      data.data = t;
+      printf("A\n");
+      pubSim.publish(data);
+      printf("B\n");
 
-    geometry_msgs::Point line;
-    for (int i = 0; i < 10; i++) {
-      line.x = -1.0 + 0.2 * ( rand() % 10 );
-      line.y = -1.0 + 0.2 * ( rand() % 10 );
-      line.z = -1.0 + 0.2 * ( rand() % 10 );
-      rv_line.position.push_back(line);
+      for(int i = 0; i < ioBody->numJoints(); ++i) {
+        Link * joint = ioBody->joint(i);
+        double q     = joint->q();
+        double dq    = ( q - qold[i] ) / dt;
+        joint->dq_target() = ( qref[i] - q ) * pgain + ( 0.0 - dq ) * dgain;
+        qold[i]            = q;
+      }
+      printf("%lf\n", t);
     }
 
-    pub.publish(rv_line);
+    t += dt;
 
     return true;
   }

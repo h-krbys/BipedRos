@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <package format="2">
-  <name>choreonoid_biped</name>
+  <name>choreonoid_rvizplugin</name>
   <version>0.0.0</version>
   <description>
     BipedCnoid ROS interface package with Choreonoid
@@ -17,6 +17,7 @@
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
   <depend>biped_msgs</depend>
+  <depend>tf</depend>
 
   <export>
     <build_type>cmake</build_type>

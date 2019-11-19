@@ -4,7 +4,7 @@
     点や線などの図形をRVizに描画
  */
 
-#include "rviz_plot.h"
+#include "RvizPlot.h"
 
 RvizPlot::RvizPlot() : resolution(100), arrow_ratio(5) {
   sub_point = nh.subscribe<biped_msgs::RvPoint>(

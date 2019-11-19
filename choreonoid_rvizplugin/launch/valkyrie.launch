@@ -2,7 +2,7 @@
 
   <arg name="model" default="$(find biped_msgs)/urdf/valkyrie.urdf"/>
   <arg name="gui" default="true"/>
-  <arg name="rvizconfig" default="$(find choreonoid_biped)/launch/valkyrie.rviz"/>
+  <arg name="rvizconfig" default="$(find choreonoid_rvizplugin)/launch/valkyrie.rviz"/>
 
   <param name="robot_description" command="$(find xacro)/xacro --inorder $(arg model)"/>
   <param name="use_gui" value="$(arg gui)"/>

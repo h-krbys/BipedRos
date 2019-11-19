@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.12)
-project(choreonoid_biped)
+project(choreonoid_rvizplugin)
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   choreonoid
   #choreonoid_rosplugin
   biped_msgs
+  tf
 )
 
 if(CHOREONOID_CXX_STANDARD)
@@ -23,6 +24,8 @@ catkin_package( CATKIN_DEPENDS
   roscpp
 )
 
+add_definitions(${CHOREONOID_DEFINITIONS})
+
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
@@ -32,6 +35,24 @@ include_directories(
 link_directories(
   ${CHOREONOID_LIBRARY_DIRS}
 )
+
+# build plugin
+add_cnoid_plugin(CnoidRvizPlugin SHARED
+  src/RvizPlugin.cpp
+  # src/RvizPublisher.cpp
+)
+
+target_link_libraries(CnoidRvizPlugin
+  ${roscpp_LIBRARIES}
+  ${std_msgs_LIBRARIES}
+  ${sensor_msgs_LIBRARIES}
+  ${CHOREONOID_LIBRARIES}
+  )
+
+install(TARGETS CnoidRvizPlugin
+  LIBRARY DESTINATION ${CHOREONOID_PLUGIN_SUBDIR}
+)
+# end build plugin
 
 function(add_cnoid_simple_controller)
   set(target ${ARGV0})
@@ -43,18 +64,18 @@ function(add_cnoid_simple_controller)
   install(TARGETS ${target} LIBRARY DESTINATION ${CHOREONOID_PLUGIN_SUBDIR}/simplecontroller)
 endfunction()
 
-add_executable(rviz_plot src/rviz_plot.cpp)
-add_dependencies(rviz_plot ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(rviz_plot ${catkin_LIBRARIES})
-install(TARGETS rviz_plot
+add_executable(RvizPublisher src/RvizPublisher.cpp)
+add_dependencies(RvizPublisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(RvizPublisher ${catkin_LIBRARIES})
+install(TARGETS RvizPublisher
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-# install(DIRECTORY launch
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 add_subdirectory(sample)
 add_subdirectory(project)

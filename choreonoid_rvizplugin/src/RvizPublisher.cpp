@@ -93,11 +93,10 @@ void RvizPublisher::callbackSimulation(const std_msgs::Float64::ConstPtr &t){
   data_.icp    = icp;
   data_.foot_r = foot_r;
   data_.foot_l = foot_l;
-  printf("time %lf\n", (double)t->data);
   data.push_back(data_);
 
   publishCop();
-  publishJoint();
+  // publishJoint();
 }
 
 void RvizPublisher::callbackPose(const geometry_msgs::Pose::ConstPtr &body){

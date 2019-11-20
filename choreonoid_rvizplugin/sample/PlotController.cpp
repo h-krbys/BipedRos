@@ -1,5 +1,5 @@
 #include <cnoid/SimpleController>
-#include <cnoid/SpotLight>
+#include <cnoid/JointPath>
 #include <ros/node_handle.h>
 #include <sensor_msgs/Joy.h>
 #include "../include/RvizPublisher.h"
@@ -17,7 +17,14 @@ class PlotController : public SimpleController
   double              t, dt;
   std::vector<double> qref;
   std::vector<double> qold;
+  int                 phase;
 
+  // virtual body
+  BodyPtr                    virtualBody;
+  Link                      *virtualBase, *virtualLLeg, *virtualRLeg;
+  std::shared_ptr<JointPath> baseToLLeg, baseToRLeg;
+
+  // ros setting
   ros::NodeHandle     *nh;
   ros::Publisher       pubJoint, pubPose, pubCop, pubSim;
   geometry_msgs::Point point;
@@ -41,6 +48,21 @@ public:
       io->enableInput(io->body()->link(i), LINK_POSITION);
     }
 
+    // set virtual model
+    virtualBody = ioBody->clone();
+    virtualLLeg = virtualBody->link("leftFootSole");
+    virtualRLeg = virtualBody->link("rightFootSole");
+    virtualBase = virtualBody->link("pelvis");
+    baseToRLeg  = getCustomJointPath(virtualBody, virtualBase, virtualRLeg);
+    baseToLLeg  = getCustomJointPath(virtualBody, virtualBase, virtualLLeg);
+    for (int i = 0; i < ioBody->numJoints(); ++i) {
+      virtualBody->joint(i)->q() = ioBody->joint(i)->q();
+    }
+    baseToLLeg->calcForwardKinematics();
+    baseToRLeg->calcForwardKinematics();
+
+    phase = 0;
+
     int    argc = 0;
     char** argv = 0;
     ros::init(argc, argv, "simplecontroller");
@@ -63,10 +85,52 @@ public:
     point.z = 1.0;
     pubCop.publish(point);
 
-    qref[10] += 0.1 * dt;
+    Position posLLeg = baseToLLeg->endLink()->position();
+    Position posRLeg = baseToRLeg->endLink()->position();
+
+    switch(phase) {
+    case 0:
+      posLLeg.translation().z() += 0.1 * dt;
+      posRLeg.translation().z() += 0.1 * dt;
+      break;
+    case 1:
+      posLLeg.translation().x() += 0.05 * dt;
+      posRLeg.translation().x() += 0.05 * dt;
+      break;
+    case 2:
+      posLLeg.translation().x() -= 0.05 * dt;
+      posRLeg.translation().x() -= 0.05 * dt;
+      break;
+    case 3:
+      posLLeg.translation().y() += 0.05 * dt;
+      posRLeg.translation().y() += 0.05 * dt;
+      break;
+    case 4:
+      posLLeg.translation().y() -= 0.05 * dt;
+      posRLeg.translation().y() -= 0.05 * dt;
+      break;
+    case 5:
+      posLLeg.translation().z() -= 0.09 * dt;
+      posRLeg.translation().z() -= 0.09 * dt;
+      break;
+    case 6:
+      phase = 0;
+      break;
+    default:
+      break;
+    }
+
+    if(t > 2) {
+      t = 0.0;
+      phase++;
+    }
+
+    baseToLLeg->calcInverseKinematics(posLLeg);
+    baseToRLeg->calcInverseKinematics(posRLeg);
 
     std_msgs::Float64MultiArray arr;
     for(int i = 0; i < ioBody->numJoints(); ++i) {
+      qref[i] = virtualBody->joint(i)->q();
       Link * joint = ioBody->joint(i);
       double q     = joint->q();
       double dq    = ( q - qold[i] ) / dt;

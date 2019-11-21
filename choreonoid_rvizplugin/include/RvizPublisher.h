@@ -29,25 +29,40 @@ public:
   void setTimeStep(double timestep);
 
   void setPose(cnoid::BodyPtr body);
+  void setComRef(Eigen::Vector3f comRef);
+  void setCopRef(Eigen::Vector3f copRef);
+  void setIcpRef(Eigen::Vector3f icpRef);
+  void setCom(Eigen::Vector3f com);
   void setCop(Eigen::Vector3f cop);
+  void setIcp(Eigen::Vector3f icp);
 
   void simulation(double time);
   void playback(double time);
 
   void publishPose();
+  void publishComRef();
+  void publishCopRef();
+  void publishIcpRef();
+  void publishCom();
   void publishCop();
+  void publishIcp();
 
 private:
   ros::NodeHandle *nh;
 
-  ros::Publisher pubCop;
+  ros::Publisher pubComRef, pubCopRef, pubIcpRef;
+  ros::Publisher pubCom, pubCop, pubIcp;
 
+  Eigen::Vector3f copRef, comRef, icpRef;
   Eigen::Vector3f cop, com, icp;
   Eigen::Vector3f foot_r, foot_l;
 
   double dt;
 
   std::vector<PlotData> data;
+
+  const double markerSize;
+  const double lineWidth;
 };
 
 #endif

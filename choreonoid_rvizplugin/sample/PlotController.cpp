@@ -26,7 +26,8 @@ class PlotController : public SimpleController
   RvizPublisher publisher;
 
   // control
-  Vector3f cop;
+  Vector3f com, cop, icp;
+  Vector3f comRef, copRef, icpRef;
 
 public:
   virtual bool initialize(SimpleControllerIO* io) override
@@ -120,12 +121,37 @@ public:
 
     t += dt;
 
+    com.x() = t;
+    com.y() = 1;
+    com.z() = 0;
+
     cop.x() = t;
     cop.y() = 0;
     cop.z() = 0;
 
+    icp.x() = t;
+    icp.y() = -1;
+    icp.z() = 0;
+
+    comRef.x() = t / 2;
+    comRef.y() = 1;
+    comRef.z() = 0;
+
+    copRef.x() = t / 2;
+    copRef.y() = 0;
+    copRef.z() = 0;
+
+    icpRef.x() = t / 2;
+    icpRef.y() = -1;
+    icpRef.z() = 0;
+
     publisher.setPose(ioBody);
+    publisher.setComRef(comRef);
+    publisher.setCopRef(copRef);
+    publisher.setIcpRef(icpRef);
+    publisher.setCom(com);
     publisher.setCop(cop);
+    publisher.setIcp(icp);
     publisher.simulation(t);
 
     return true;

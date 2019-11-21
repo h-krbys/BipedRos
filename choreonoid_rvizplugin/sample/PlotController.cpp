@@ -25,6 +25,9 @@ class PlotController : public SimpleController
   // rviz
   RvizPublisher publisher;
 
+  // control
+  Vector3f cop;
+
 public:
   virtual bool initialize(SimpleControllerIO* io) override
   {
@@ -95,15 +98,11 @@ public:
       posLLeg.translation().z() -= 0.09 * dt;
       posRLeg.translation().z() -= 0.09 * dt;
       break;
-    case 6:
-      phase = 0;
-      break;
     default:
       break;
     }
 
-    if(t > 2) {
-      t = 0.0;
+    if(t > 2 * ( phase + 1 ) ) {
       phase++;
     }
 
@@ -121,7 +120,13 @@ public:
 
     t += dt;
 
+    cop.x() = t;
+    cop.y() = 0;
+    cop.z() = 0;
+
     publisher.setPose(ioBody);
+    publisher.setCop(cop);
+    publisher.simulation(t);
 
     return true;
   }

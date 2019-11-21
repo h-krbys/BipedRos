@@ -61,8 +61,6 @@ void RvizPublisher::setCop(Eigen::Vector3f cop){
 }
 
 void RvizPublisher::publishCop(){
-  // printf("publish %d\n", (int)data.size() );
-
   visualization_msgs::Marker marker;
   marker.header.frame_id = "world";
   marker.header.stamp    = ros::Time::now();
@@ -84,8 +82,8 @@ void RvizPublisher::publishCop(){
   marker.scale.y = 1.0;
   marker.scale.z = 1.0;
 
-  marker.color.r = 0.0f;
-  marker.color.g = 1.0f;
+  marker.color.r = 1.0f;
+  marker.color.g = 0.0f;
   marker.color.b = 0.0f;
   marker.color.a = 1.0;
 

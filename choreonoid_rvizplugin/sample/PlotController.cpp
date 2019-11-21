@@ -1,8 +1,6 @@
 #include <cnoid/SimpleController>
 #include <cnoid/JointPath>
-#include <ros/node_handle.h>
-#include <sensor_msgs/Joy.h>
-#include "../include/RvizPublisher.h"
+#include "RvizPublisher.h"
 #include <mutex>
 
 using namespace std;
@@ -24,11 +22,8 @@ class PlotController : public SimpleController
   Link                      *virtualBase, *virtualLLeg, *virtualRLeg;
   std::shared_ptr<JointPath> baseToLLeg, baseToRLeg;
 
-  // ros setting
-  ros::NodeHandle     *nh;
-  ros::Publisher       pubJoint, pubPose, pubCop, pubSim;
-  geometry_msgs::Point point;
-  std_msgs::Float64    data;
+  // rviz
+  RvizPublisher publisher;
 
 public:
   virtual bool initialize(SimpleControllerIO* io) override
@@ -63,28 +58,15 @@ public:
 
     phase = 0;
 
-    int    argc = 0;
-    char** argv = 0;
-    ros::init(argc, argv, "simplecontroller");
-    nh = new ros::NodeHandle("");
-
-    pubPose  = nh->advertise<geometry_msgs::Pose>("/simulation/pose", 1000);
-    pubJoint = nh->advertise<std_msgs::Float64MultiArray>("/simulation/joint", 1000);
-    pubCop   = nh->advertise<geometry_msgs::Point>("/simulation/cop", 1000);
-    pubSim   = nh->advertise<std_msgs::Float64>("/simulation/time", 1000);
-
     t = 0.0;
+
+    publisher.setTimeStep(dt);
 
     return true;
   }
 
   virtual bool control() override
   {
-    point.x = 1.0;
-    point.y = 1.0;
-    point.z = 1.0;
-    pubCop.publish(point);
-
     Position posLLeg = baseToLLeg->endLink()->position();
     Position posRLeg = baseToRLeg->endLink()->position();
 
@@ -128,7 +110,6 @@ public:
     baseToLLeg->calcInverseKinematics(posLLeg);
     baseToRLeg->calcInverseKinematics(posRLeg);
 
-    std_msgs::Float64MultiArray arr;
     for(int i = 0; i < ioBody->numJoints(); ++i) {
       qref[i] = virtualBody->joint(i)->q();
       Link * joint = ioBody->joint(i);
@@ -136,26 +117,11 @@ public:
       double dq    = ( q - qold[i] ) / dt;
       joint->dq_target() = ( qref[i] - q ) * pgain + ( 0.0 - dq ) * dgain;
       qold[i]            = q;
-
-      arr.data.push_back(q);
     }
-    pubJoint.publish(arr);
-
-    geometry_msgs::Pose pose;
-    pose.position.x = ioBody->rootLink()->translation().x();
-    pose.position.y = ioBody->rootLink()->translation().y();
-    pose.position.z = ioBody->rootLink()->translation().z();
-    Quaternion q(ioBody->rootLink()->rotation() );
-    pose.orientation.x = q.x();
-    pose.orientation.y = q.y();
-    pose.orientation.z = q.z();
-    pose.orientation.w = q.w();
-    pubPose.publish(pose);
-
-    data.data = t;
-    pubSim.publish(data);
 
     t += dt;
+
+    publisher.setPose(ioBody);
 
     return true;
   }

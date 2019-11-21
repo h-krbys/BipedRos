@@ -1,1 +1,1 @@
-add_cnoid_simple_controller(PlotController PlotController.cpp)
+add_cnoid_simple_controller(PlotController PlotController.cpp ../src/RvizPublisher.cpp)

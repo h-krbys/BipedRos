@@ -64,14 +64,14 @@ function(add_cnoid_simple_controller)
   install(TARGETS ${target} LIBRARY DESTINATION ${CHOREONOID_PLUGIN_SUBDIR}/simplecontroller)
 endfunction()
 
-add_executable(RvizPublisher src/RvizPublisher.cpp)
-add_dependencies(RvizPublisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(RvizPublisher ${catkin_LIBRARIES})
-install(TARGETS RvizPublisher
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+# add_executable(RvizPublisher src/RvizPublisher.cpp)
+# add_dependencies(RvizPublisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(RvizPublisher ${catkin_LIBRARIES})
+# install(TARGETS RvizPublisher
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
 # install(DIRECTORY launch
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

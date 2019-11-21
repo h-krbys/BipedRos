@@ -8,12 +8,12 @@
   <param name="use_gui" value="$(arg gui)"/>
 
   <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/> -->
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+  <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
     <rosparam param="source_list">["/marker/joint"]</rosparam>
-  </node>
+  </node> -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
 
-  <node name="RvizPublisher" pkg="choreonoid_rvizplugin" type="RvizPublisher" output="screen"/>
+  <!-- <node name="RvizPublisher" pkg="choreonoid_rvizplugin" type="RvizPublisher" output="screen"/> -->
 
 </launch>

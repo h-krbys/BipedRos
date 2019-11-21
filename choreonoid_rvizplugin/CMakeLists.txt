@@ -79,3 +79,11 @@ endfunction()
 
 add_subdirectory(sample)
 add_subdirectory(project)
+
+# install(DIRECTORY meshes
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+# )
+#
+# install(DIRECTORY urdf
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+# )

@@ -26,8 +26,9 @@ class PlotController : public SimpleController
   RvizPublisher publisher;
 
   // control
-  Vector3f com, cop, icp;
-  Vector3f comRef, copRef, icpRef;
+  Vector3f              com, cop, icp;
+  Vector3f              comRef, copRef, icpRef;
+  std::vector<Vector3f> footstepR, footstepL;
 
 public:
   virtual bool initialize(SimpleControllerIO* io) override
@@ -65,6 +66,16 @@ public:
     t = 0.0;
 
     publisher.setTimeStep(dt);
+
+    footstepR.push_back(Vector3f(0.5, -0.5, 0.0) );
+    footstepR.push_back(Vector3f(1.0, -0.5, 0.0) );
+    footstepR.push_back(Vector3f(1.5, -0.5, 0.0) );
+    footstepR.push_back(Vector3f(2.0, -0.5, 0.0) );
+
+    footstepL.push_back(Vector3f(0.5, +0.5, 0.0) );
+    footstepL.push_back(Vector3f(1.0, +0.5, 0.0) );
+    footstepL.push_back(Vector3f(1.5, +0.5, 0.0) );
+    footstepL.push_back(Vector3f(2.0, +0.5, 0.0) );
 
     return true;
   }
@@ -121,29 +132,29 @@ public:
 
     t += dt;
 
-    com.x() = t;
-    com.y() = 1;
-    com.z() = 0;
-
-    cop.x() = t;
-    cop.y() = 0;
-    cop.z() = 0;
-
-    icp.x() = t;
-    icp.y() = -1;
-    icp.z() = 0;
-
-    comRef.x() = t / 2;
+    comRef.x() = t;
     comRef.y() = 1;
     comRef.z() = 0;
 
-    copRef.x() = t / 2;
+    copRef.x() = t;
     copRef.y() = 0;
     copRef.z() = 0;
 
-    icpRef.x() = t / 2;
+    icpRef.x() = t;
     icpRef.y() = -1;
     icpRef.z() = 0;
+
+    com.x() = t / 2;
+    com.y() = 1;
+    com.z() = 0;
+
+    cop.x() = t / 2;
+    cop.y() = 0;
+    cop.z() = 0;
+
+    icp.x() = t / 2;
+    icp.y() = -1;
+    icp.z() = 0;
 
     publisher.setPose(ioBody);
     publisher.setComRef(comRef);
@@ -152,6 +163,8 @@ public:
     publisher.setCom(com);
     publisher.setCop(cop);
     publisher.setIcp(icp);
+    publisher.setFootstepR(footstepR);
+    publisher.setFootstepL(footstepL);
     publisher.simulation(t);
 
     return true;

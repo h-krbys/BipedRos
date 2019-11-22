@@ -8,7 +8,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   choreonoid
-  #choreonoid_rosplugin
   tf
 )
 
@@ -19,7 +18,7 @@ else()
   add_compile_options(-std=c++11)
 endif()
 
-catkin_package( CATKIN_DEPENDS
+catkin_package(CATKIN_DEPENDS
   roscpp
 )
 
@@ -38,7 +37,7 @@ link_directories(
 # build plugin
 add_cnoid_plugin(CnoidRvizPlugin SHARED
   src/RvizPlugin.cpp
-  # src/RvizPublisher.cpp
+  src/RvizPublisher.cpp
 )
 
 target_link_libraries(CnoidRvizPlugin
@@ -46,7 +45,7 @@ target_link_libraries(CnoidRvizPlugin
   ${std_msgs_LIBRARIES}
   ${sensor_msgs_LIBRARIES}
   ${CHOREONOID_LIBRARIES}
-  )
+)
 
 install(TARGETS CnoidRvizPlugin
   LIBRARY DESTINATION ${CHOREONOID_PLUGIN_SUBDIR}

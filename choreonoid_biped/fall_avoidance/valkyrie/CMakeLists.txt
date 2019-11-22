@@ -1,0 +1,1 @@
+add_cnoid_simple_controller(CaptWalk CaptWalk.cpp ../../../choreonoid_rvizplugin/src/RvizPublisher.cpp)

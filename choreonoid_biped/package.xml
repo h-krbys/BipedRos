@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<package format="2">
+  <name>choreonoid_biped</name>
+  <version>0.0.0</version>
+  <description>
+    SimpleController for Bipedal Robots
+  </description>
+  <maintainer email="kuribayashi@stu.kobe-u.ac.jp">Hiroki Kuribayashi</maintainer>
+  <license>MIT</license>
+  <author email="kuribayashi@stu.kobe-u.ac.jp">Hiroki Kuribayashi</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>tf</depend>
+  <depend>choreonoid</depend>
+  <depend>choreonoid_rvizplugin</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

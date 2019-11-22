@@ -1,0 +1,50 @@
+cmake_minimum_required(VERSION 2.8.12)
+project(choreonoid_biped)
+
+set(CMAKE_CXX_FLAGS "-std=c++11")
+
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
+  tf
+  choreonoid
+  choreonoid_rvizplugin
+)
+
+if(CHOREONOID_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD ${CHOREONOID_CXX_STANDARD})
+  set(CMAKE_CXX_EXTENSIONS OFF)
+else()
+  add_compile_options(-std=c++11)
+endif()
+
+catkin_package( CATKIN_DEPENDS
+  roscpp
+  choreonoid_rvizplugin
+)
+
+add_definitions(${CHOREONOID_DEFINITIONS})
+
+include_directories(
+  include
+  ../choreonoid_rvizplugin/include
+  ${catkin_INCLUDE_DIRS}
+  ${CHOREONOID_INCLUDE_DIRS}
+)
+
+link_directories(
+  ${CHOREONOID_LIBRARY_DIRS}
+)
+function(add_cnoid_simple_controller)
+  set(target ${ARGV0})
+  list(REMOVE_AT ARGV 0)
+  add_library(${target} SHARED ${ARGV})
+  target_link_libraries(${target} ${catkin_LIBRARIES} ${CHOREONOID_BODY_LIBRARIES} CnoidRvizPlugin)
+  set_target_properties(${target} PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CHOREONOID_PLUGIN_SUBDIR}/simplecontroller PREFIX "")
+  install(TARGETS ${target} LIBRARY DESTINATION ${CHOREONOID_PLUGIN_SUBDIR}/simplecontroller)
+endfunction()
+
+install(DIRECTORY project DESTINATION ${CHOREONOID_SHARE_SUBDIR})
+
+add_subdirectory(fall_avoidance)

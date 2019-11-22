@@ -16,7 +16,6 @@
   <depend>choreonoid_ros_plugin</depend>
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
-  <depend>biped_msgs</depend>
   <depend>tf</depend>
 
   <export>

@@ -116,8 +116,6 @@ public:
       qold[i]            = q;
     }
 
-    t += dt;
-
     comRef.x() = t;
     comRef.y() = 1;
     comRef.z() = 0;
@@ -152,6 +150,8 @@ public:
     publisher.setFootstepR(footstepR);
     publisher.setFootstepL(footstepL);
     publisher.simulation(t);
+
+    t += dt;
 
     return true;
   }

@@ -7,10 +7,22 @@
 #include <tf/transform_broadcaster.h>
 #include <sensor_msgs/JointState.h>
 #include <cnoid/SimpleController>
+#include <cnoid/TimeBar>
+#include <cnoid/ToolBar>
+#include <cnoid/ItemList>
+#include <cnoid/ItemTreeView>
+#include <cnoid/SimulatorItem>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <vector>
 #include <memory>
+
+namespace cnoid {
+
+struct LinkData {
+  Position::TranslationPart pos;
+  Quaternion                quat;
+}
 
 struct PlotData {
   Eigen::Vector3f              copRef, comRef, icpRef;
@@ -30,7 +42,7 @@ public:
 
   void setTimeStep(double timestep);
 
-  void setPose(cnoid::BodyPtr body);
+  void setPose(BodyPtr body);
   void setComRef(Eigen::Vector3f comRef);
   void setCopRef(Eigen::Vector3f copRef);
   void setIcpRef(Eigen::Vector3f icpRef);
@@ -41,10 +53,11 @@ public:
   void setFootstepR(std::vector<Eigen::Vector3f> footstepR);
   void setFootstepL(std::vector<Eigen::Vector3f> footstepL);
 
+  bool timeChanged(double time);
   void simulation(double time);
   void playback(double time);
 
-  // void publishPose();
+  void publishPose(cnoid::Link link);
   void publishComRef();
   void publishCopRef();
   void publishIcpRef();
@@ -73,17 +86,26 @@ private:
   ros::Publisher pubComTraj, pubCopTraj, pubIcpTraj;
   ros::Publisher pubFootRTraj, pubFootLTraj;
 
+  cnoid::BodyPtr               body;
   Eigen::Vector3f              copRef, comRef, icpRef;
   Eigen::Vector3f              cop, com, icp;
   Eigen::Vector3f              footR, footL;
   std::vector<Eigen::Vector3f> footstepR, footstepL;
 
-  double dt;
+  double dt, maxTime;
 
   std::vector<PlotData> data;
 
   const double markerSize;
   const double lineWidth;
+
+  // connect signal & slot
+  TimeBar   *timeBar;
+  Connection timeBarConnection;
+  bool       isSimulation;
+  bool       isPlayback;
 };
+
+}
 
 #endif

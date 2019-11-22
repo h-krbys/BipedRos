@@ -1,6 +1,7 @@
 #include "RvizPublisher.h"
 
 using namespace std;
+using namespace cnoid;
 using namespace Eigen;
 
 RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 4.0){
@@ -27,8 +28,18 @@ RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 4.0){
   pubIcpTraj    = nh->advertise<visualization_msgs::Marker>("/marker/icp_traj", 1);
   pubFootRTraj  = nh->advertise<visualization_msgs::Marker>("/marker/foot_r_traj", 1);
   pubFootLTraj  = nh->advertise<visualization_msgs::Marker>("/marker/foot_l_traj", 1);
+
+  // get instance of each bar
+  timeBar = TimeBar::instance();
+
+  // connection
+  timeBarConnection = timeBar->sigTimeChanged().connect(
+    bind(&RvizPublisher::timeChanged, this, _1) );
+
   // initialize
-  dt = 0.001;
+  dt           = 0.001;
+  isSimulation = true;
+  isPlayback   = false;
 }
 
 RvizPublisher::~RvizPublisher(){
@@ -40,8 +51,18 @@ void RvizPublisher::initialize(){
   data.clear();
 }
 
-void RvizPublisher::setTimeStep(double timestep){
-  this->dt = timestep;
+bool RvizPublisher::timeChanged(double time){
+  if(isSimulation) {
+    if(time > dt && !timeBar->isDoingPlayback() ) {
+      isSimulation = false;
+    }
+  }else{
+    isPlayback = true;
+  }
+
+  if(isPlayback) {
+    playback(time);
+  }
 }
 
 void RvizPublisher::simulation(double time){
@@ -74,25 +95,50 @@ void RvizPublisher::simulation(double time){
   publishIcpTraj(time);
   publishFootRTraj(time);
   publishFootLTraj(time);
+
+  maxTime = time;
+}
+
+void RvizPublisher::playback(double time){
+  if(time <= maxTime) {
+    const int num_timestep = time / dt;
+    copRef    = data[num_timestep].copRef;
+    comRef    = data[num_timestep].comRef;
+    icpRef    = data[num_timestep].icpRef;
+    cop       = data[num_timestep].cop;
+    com       = data[num_timestep].com;
+    icp       = data[num_timestep].icp;
+    footR     = data[num_timestep].footR;
+    footL     = data[num_timestep].footL;
+    footstepR = data[num_timestep].footstepR;
+    footstepL = data[num_timestep].footstepL;
+    publishComRef();
+    publishCopRef();
+    publishIcpRef();
+    publishCom();
+    publishCop();
+    publishIcp();
+    publishFootstepR();
+    publishFootstepL();
+    publishComRefTraj(time);
+    publishCopRefTraj(time);
+    publishIcpRefTraj(time);
+    publishComTraj(time);
+    publishCopTraj(time);
+    publishIcpTraj(time);
+    publishFootRTraj(time);
+    publishFootLTraj(time);
+  }
+}
+
+void RvizPublisher::setTimeStep(double timestep){
+  this->dt = timestep;
 }
 
 void RvizPublisher::setPose(cnoid::BodyPtr body){
+  this->body = body;
   for (int i = 0; i < body->numLinks(); ++i) {
-    auto        pos = body->link(i)->translation();
-    tf::Vector3 p(pos.x(),
-                  pos.y(),
-                  pos.z() );
-    cnoid::Quaternion quat(body->link(i)->rotation() );
-    tf::Quaternion    q(quat.x(),
-                        quat.y(),
-                        quat.z(),
-                        quat.w() );
-    tf::Transform transform;
-    transform.setOrigin(p);
-    transform.setRotation(q);
-
-    static tf::TransformBroadcaster br;
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", body->link(i)->name() ) );
+    publishPose(*( body->link(i) ) );
   }
   footR.x() = body->link("rightFootSole")->translation().x();
   footR.y() = body->link("rightFootSole")->translation().y();
@@ -132,6 +178,24 @@ void RvizPublisher::setFootstepR(std::vector<Eigen::Vector3f> footstepR){
 
 void RvizPublisher::setFootstepL(std::vector<Eigen::Vector3f> footstepL){
   this->footstepL = footstepL;
+}
+
+void RvizPublisher::publishPose(cnoid::Link link){
+  Position::TranslationPart pos = link.translation();
+  tf::Vector3               p(pos.x(),
+                              pos.y(),
+                              pos.z() );
+  Quaternion     quat(link.rotation() );
+  tf::Quaternion q(quat.x(),
+                   quat.y(),
+                   quat.z(),
+                   quat.w() );
+  tf::Transform transform;
+  transform.setOrigin(p);
+  transform.setRotation(q);
+
+  static tf::TransformBroadcaster br;
+  br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", link.name() ) );
 }
 
 void RvizPublisher::publishComRef(){

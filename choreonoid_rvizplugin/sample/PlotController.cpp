@@ -91,24 +91,11 @@ public:
       posRLeg.translation().z() += 0.1 * dt;
       break;
     case 1:
-      posLLeg.translation().x() += 0.05 * dt;
-      posRLeg.translation().x() += 0.05 * dt;
-      break;
-    case 2:
-      posLLeg.translation().x() -= 0.05 * dt;
-      posRLeg.translation().x() -= 0.05 * dt;
+      posLLeg.translation().y() -= 0.1 * dt;
+      posRLeg.translation().y() -= 0.1 * dt;
       break;
     case 3:
-      posLLeg.translation().y() += 0.05 * dt;
-      posRLeg.translation().y() += 0.05 * dt;
-      break;
-    case 4:
-      posLLeg.translation().y() -= 0.05 * dt;
-      posRLeg.translation().y() -= 0.05 * dt;
-      break;
-    case 5:
-      posLLeg.translation().z() -= 0.09 * dt;
-      posRLeg.translation().z() -= 0.09 * dt;
+      posRLeg.translation().z() += 0.1 * dt;
       break;
     default:
       break;

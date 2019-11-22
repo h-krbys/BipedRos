@@ -72,17 +72,6 @@ endfunction()
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
-# install(DIRECTORY launch
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
-
 add_subdirectory(sample)
-add_subdirectory(project)
 
-# install(DIRECTORY meshes
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
-#
-# install(DIRECTORY urdf
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(DIRECTORY project DESTINATION ${CHOREONOID_SHARE_SUBDIR})

@@ -23,3 +23,8 @@ ROS上でChoreonoidを利用するための手順を確認
 BipedCnoidをビルドする
 
 	$ catkin config --cmake-args -DADDITIONAL_EXT_DIRECTORIES=~/cnoid_ws/src/choreonoid/BipedCnoid -DUSE_PYTHON3=OFF -DBUILD_BIPEDCNOID_PLUGIN=ON -DBUILD_BIPEDCNOID_SAMPLE=ON
+
+## 実行
+
+$ choreonoid devel/share/choreonoid-1.8/project/CaptWalkVal.cnoid
+$ roslaunch choreonoid_rvizplugin valkyrie.launch

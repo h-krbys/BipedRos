@@ -67,6 +67,7 @@ bool RvizPublisher::timeChanged(double time){
 
 void RvizPublisher::simulation(double time){
   PlotData data_;
+  data_.link      = link;
   data_.copRef    = copRef;
   data_.comRef    = comRef;
   data_.icpRef    = icpRef;
@@ -79,6 +80,7 @@ void RvizPublisher::simulation(double time){
   data_.footstepL = footstepL;
   data.push_back(data_);
 
+  publishPose();
   publishComRef();
   publishCopRef();
   publishIcpRef();
@@ -102,6 +104,7 @@ void RvizPublisher::simulation(double time){
 void RvizPublisher::playback(double time){
   if(time <= maxTime) {
     const int num_timestep = time / dt;
+    link      = data[num_timestep].link;
     copRef    = data[num_timestep].copRef;
     comRef    = data[num_timestep].comRef;
     icpRef    = data[num_timestep].icpRef;
@@ -112,6 +115,7 @@ void RvizPublisher::playback(double time){
     footL     = data[num_timestep].footL;
     footstepR = data[num_timestep].footstepR;
     footstepL = data[num_timestep].footstepL;
+    publishPose();
     publishComRef();
     publishCopRef();
     publishIcpRef();
@@ -136,9 +140,20 @@ void RvizPublisher::setTimeStep(double timestep){
 }
 
 void RvizPublisher::setPose(cnoid::BodyPtr body){
-  this->body = body;
+  link.clear();
   for (int i = 0; i < body->numLinks(); ++i) {
-    publishPose(*( body->link(i) ) );
+    LinkData link_;
+    link_.name = body->link(i)->name();
+    Position::TranslationPart pos = body->link(i)->translation();
+    link_.p_x = pos.x();
+    link_.p_y = pos.y();
+    link_.p_z = pos.z();
+    Quaternion quat(body->link(i)->rotation() );
+    link_.q_x = quat.x();
+    link_.q_y = quat.y();
+    link_.q_z = quat.z();
+    link_.q_w = quat.w();
+    link.push_back(link_);
   }
   footR.x() = body->link("rightFootSole")->translation().x();
   footR.y() = body->link("rightFootSole")->translation().y();
@@ -180,22 +195,22 @@ void RvizPublisher::setFootstepL(std::vector<Eigen::Vector3f> footstepL){
   this->footstepL = footstepL;
 }
 
-void RvizPublisher::publishPose(cnoid::Link link){
-  Position::TranslationPart pos = link.translation();
-  tf::Vector3               p(pos.x(),
-                              pos.y(),
-                              pos.z() );
-  Quaternion     quat(link.rotation() );
-  tf::Quaternion q(quat.x(),
-                   quat.y(),
-                   quat.z(),
-                   quat.w() );
-  tf::Transform transform;
-  transform.setOrigin(p);
-  transform.setRotation(q);
+void RvizPublisher::publishPose(){
+  for(size_t i = 0; i < link.size(); i++) {
+    tf::Vector3 p(link[i].p_x,
+                  link[i].p_y,
+                  link[i].p_z );
+    tf::Quaternion q(link[i].q_x,
+                     link[i].q_y,
+                     link[i].q_z,
+                     link[i].q_w );
+    tf::Transform transform;
+    transform.setOrigin(p);
+    transform.setRotation(q);
 
-  static tf::TransformBroadcaster br;
-  br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", link.name() ) );
+    static tf::TransformBroadcaster br;
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", link[i].name.c_str() ) );
+  }
 }
 
 void RvizPublisher::publishComRef(){

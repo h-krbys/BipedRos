@@ -20,11 +20,13 @@
 namespace cnoid {
 
 struct LinkData {
-  Position::TranslationPart pos;
-  Quaternion                quat;
-}
+  std::string name;
+  double      p_x, p_y, p_z;      // position
+  double      q_x, q_y, q_z, q_w; // quaternion
+};
 
 struct PlotData {
+  std::vector<LinkData>        link;
   Eigen::Vector3f              copRef, comRef, icpRef;
   Eigen::Vector3f              cop, com, icp;
   Eigen::Vector3f              footR, footL;
@@ -57,7 +59,7 @@ public:
   void simulation(double time);
   void playback(double time);
 
-  void publishPose(cnoid::Link link);
+  void publishPose();
   void publishComRef();
   void publishCopRef();
   void publishIcpRef();
@@ -86,7 +88,7 @@ private:
   ros::Publisher pubComTraj, pubCopTraj, pubIcpTraj;
   ros::Publisher pubFootRTraj, pubFootLTraj;
 
-  cnoid::BodyPtr               body;
+  std::vector<LinkData>        link;
   Eigen::Vector3f              copRef, comRef, icpRef;
   Eigen::Vector3f              cop, com, icp;
   Eigen::Vector3f              footR, footL;

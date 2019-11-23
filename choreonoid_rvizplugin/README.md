@@ -22,7 +22,7 @@ ROS上でChoreonoidを利用するための手順を確認
 
 BipedCnoidをビルドする
 
-	$ catkin config --cmake-args -DCAPT_DIR=~/study/capturability -DADDITIONAL_EXT_DIRECTORIES=~/cnoid_ws/src/choreonoid/BipedCnoid -DUSE_PYTHON3=OFF -DBUILD_BIPEDCNOID_PLUGIN=ON -DBUILD_BIPEDCNOID_SAMPLE=ON
+	$ catkin config --cmake-args -DCAPT_DIR=/home/kuribayashi/study/capturability -DADDITIONAL_EXT_DIRECTORIES=~/cnoid_ws/src/choreonoid/BipedCnoid -DUSE_PYTHON3=OFF -DBUILD_BIPEDCNOID_PLUGIN=ON -DBUILD_BIPEDCNOID_SAMPLE=ON
 
 ## 実行
 

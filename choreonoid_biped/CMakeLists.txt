@@ -1,11 +1,16 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.0)
 project(choreonoid_biped)
 
 set(CAPT_DIR "" CACHE PATH "root directory of Capturability")
-foreach(directory ${CAPT_DIR})
-  file(GLOB_RECURSE files ${CAPT_DIR}/*.h ${CAPT_DIR}/*.cpp)
-  list(APPEND CAPT_SOURCES ${files})
-endforeach()
+
+if(EXISTS ${CAPT_DIR})
+  foreach(directory ${CAPT_DIR})
+    file(GLOB_RECURSE files ${CAPT_DIR}/src/*.cpp ${CAPT_DIR}plot/src/*.cpp)
+    list(APPEND CAPT_SOURCES ${files})
+  endforeach()
+  include_directories(${CAPT_DIR}/include)
+  include_directories(${CAPT_DIR}/plot/include)
+endif()
 
 set(RVIZ_SOURCES ../../../choreonoid_rvizplugin/src/RvizPublisher.cpp)
 
@@ -34,7 +39,6 @@ add_definitions(${CHOREONOID_DEFINITIONS})
 include_directories(
   include
   ../choreonoid_rvizplugin/include
-  ${CAPT_DIR}/include
   ${catkin_INCLUDE_DIRS}
   ${CHOREONOID_INCLUDE_DIRS}
 )

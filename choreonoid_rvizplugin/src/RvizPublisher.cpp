@@ -490,66 +490,63 @@ void RvizPublisher::publishFootstepL(){
 }
 
 void RvizPublisher::publishGridMap(){
-  const int size = gridMap.size();
+  const int size = (int)gridMap.size();
 
-  visualization_msgs::MarkerArray marker_array;
-  marker_array.markers.resize(size);
+  visualization_msgs::Marker marker;
+  marker.points.resize(size);
+  marker.colors.resize(size);
   for (size_t i = 0; i < size; i++) {
-    marker_array.markers[i].header.frame_id = "world";
-    marker_array.markers[i].header.stamp    = ros::Time::now();
-    marker_array.markers[i].ns              = "markers";
-    marker_array.markers[i].id              = i;
-    marker_array.markers[i].lifetime        = ros::Duration();
+    marker.header.frame_id = "world";
+    marker.header.stamp    = ros::Time::now();
+    marker.ns              = "markers";
+    marker.id              = i;
+    marker.lifetime        = ros::Duration();
 
-    marker_array.markers[i].type   = visualization_msgs::Marker::CUBE_LIST;
-    marker_array.markers[i].action = visualization_msgs::Marker::ADD;
+    marker.type   = visualization_msgs::Marker::CUBE_LIST;
+    marker.action = visualization_msgs::Marker::ADD;
 
-    marker_array.markers[i].pose.position.x    = gridMap[i].pos.x();
-    marker_array.markers[i].pose.position.y    = gridMap[i].pos.y();
-    marker_array.markers[i].pose.position.z    = gridMap[i].pos.z();
-    marker_array.markers[i].pose.orientation.x = 0.0;
-    marker_array.markers[i].pose.orientation.y = 0.0;
-    marker_array.markers[i].pose.orientation.z = 0.0;
-    marker_array.markers[i].pose.orientation.w = 1.0;
+    marker.points[i].x = gridMap[i].pos.x();
+    marker.points[i].y = gridMap[i].pos.y();
+    marker.points[i].z = gridMap[i].pos.z();
 
-    marker_array.markers[i].scale.x = 1.0;
-    marker_array.markers[i].scale.y = 1.0;
-    marker_array.markers[i].scale.z = 1.0;
+    marker.scale.x = 0.05;
+    marker.scale.y = 0.05;
+    marker.scale.z = 0.001;
 
     switch (gridMap[i].nstep) {
     case 0:
-      marker_array.markers[i].color.r = 1.0;
-      marker_array.markers[i].color.g = 1.0;
-      marker_array.markers[i].color.b = 1.0;
-      marker_array.markers[i].color.a = 0.0;
+      marker.colors[i].r = 1.0;
+      marker.colors[i].g = 1.0;
+      marker.colors[i].b = 1.0;
+      marker.colors[i].a = 0.0;
       break;
     case 1: // #cbfeff
-      marker_array.markers[i].color.r = 203 / 255.0;
-      marker_array.markers[i].color.g = 254 / 255.0;
-      marker_array.markers[i].color.b = 255 / 255.0;
-      marker_array.markers[i].color.a = 1.0;
+      marker.colors[i].r = 203 / 255.0;
+      marker.colors[i].g = 254 / 255.0;
+      marker.colors[i].b = 255 / 255.0;
+      marker.colors[i].a = 1.0;
       break;
     case 2: // #68fefe
-      marker_array.markers[i].color.r = 104 / 255.0;
-      marker_array.markers[i].color.g = 254 / 255.0;
-      marker_array.markers[i].color.b = 254 / 255.0;
-      marker_array.markers[i].color.a = 1.0;
+      marker.colors[i].r = 104 / 255.0;
+      marker.colors[i].g = 254 / 255.0;
+      marker.colors[i].b = 254 / 255.0;
+      marker.colors[i].a = 1.0;
       break;
     case 3: // #0097ff
-      marker_array.markers[i].color.r = 0 / 255.0;
-      marker_array.markers[i].color.g = 151 / 255.0;
-      marker_array.markers[i].color.b = 255 / 255.0;
-      marker_array.markers[i].color.a = 1.0;
+      marker.colors[i].r = 0 / 255.0;
+      marker.colors[i].g = 151 / 255.0;
+      marker.colors[i].b = 255 / 255.0;
+      marker.colors[i].a = 1.0;
       break;
     case 4: // #0000ff
-      marker_array.markers[i].color.r = 0 / 255.0;
-      marker_array.markers[i].color.g = 0 / 255.0;
-      marker_array.markers[i].color.b = 255 / 255.0;
-      marker_array.markers[i].color.a = 1.0;
+      marker.colors[i].r = 0 / 255.0;
+      marker.colors[i].g = 0 / 255.0;
+      marker.colors[i].b = 255 / 255.0;
+      marker.colors[i].a = 1.0;
       break;
     }
   }
-  pubGridMap.publish(marker_array);
+  pubGridMap.publish(marker);
 }
 
 void RvizPublisher::publishComRefTraj(double time){

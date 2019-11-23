@@ -512,6 +512,14 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
+      Marker Topic: /marker/capture_region
+      Name: CaptureRegion
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
       Marker Topic: /marker/com_ref_traj
       Name: ComRefTraj
       Namespaces:

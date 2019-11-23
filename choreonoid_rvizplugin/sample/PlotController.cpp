@@ -1,7 +1,6 @@
 #include <cnoid/SimpleController>
 #include <cnoid/JointPath>
 #include "RvizPublisher.h"
-#include <mutex>
 
 using namespace std;
 using namespace cnoid;
@@ -29,6 +28,7 @@ class PlotController : public SimpleController
   Vector3f              com, cop, icp;
   Vector3f              comRef, copRef, icpRef;
   std::vector<Vector3f> footstepR, footstepL;
+  std::vector<CaptData> gridMap;
 
 public:
   virtual bool initialize(SimpleControllerIO* io) override
@@ -66,16 +66,6 @@ public:
     t = 0.0;
 
     publisher.setTimeStep(dt);
-
-    footstepR.push_back(Vector3f(0.5, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(1.0, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(1.5, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(2.0, -0.5, 0.0) );
-
-    footstepL.push_back(Vector3f(0.5, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(1.0, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(1.5, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(2.0, +0.5, 0.0) );
 
     return true;
   }
@@ -117,8 +107,6 @@ public:
       qold[i]            = q;
     }
 
-    t += dt;
-
     comRef.x() = t;
     comRef.y() = 1;
     comRef.z() = 0;
@@ -143,6 +131,29 @@ public:
     icp.y() = -1;
     icp.z() = 0;
 
+    footstepR.clear();
+    footstepR.push_back(Vector3f(t + 0.5, -0.5, 0.0) );
+    footstepR.push_back(Vector3f(t + 1.0, -0.5, 0.0) );
+    footstepR.push_back(Vector3f(t + 1.5, -0.5, 0.0) );
+    footstepR.push_back(Vector3f(t + 2.0, -0.5, 0.0) );
+
+    footstepL.clear();
+    footstepL.push_back(Vector3f(t + 0.5, +0.5, 0.0) );
+    footstepL.push_back(Vector3f(t + 1.0, +0.5, 0.0) );
+    footstepL.push_back(Vector3f(t + 1.5, +0.5, 0.0) );
+    footstepL.push_back(Vector3f(t + 2.0, +0.5, 0.0) );
+
+    int size = 5;
+    gridMap.clear();
+    for(int i = 0; i < size; i++) {
+      for(int j = 0; j < size; j++) {
+        CaptData data_;
+        data_.pos   = Vector3f(t + 0.05 * i, t + 0.05 * j, 0.0);
+        data_.nstep = i;
+        gridMap.push_back(data_);
+      }
+    }
+
     publisher.setPose(ioBody);
     publisher.setComRef(comRef);
     publisher.setCopRef(copRef);
@@ -152,7 +163,10 @@ public:
     publisher.setIcp(icp);
     publisher.setFootstepR(footstepR);
     publisher.setFootstepL(footstepL);
+    publisher.setGridMap(gridMap);
     publisher.simulation(t);
+
+    t += dt;
 
     return true;
   }

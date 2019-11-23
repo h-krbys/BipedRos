@@ -20,6 +20,7 @@ RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 4.0){
   pubIcp        = nh->advertise<visualization_msgs::Marker>("/marker/icp", 1);
   pubFootstepR  = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_r", 1);
   pubFootstepL  = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_l", 1);
+  pubGridMap    = nh->advertise<visualization_msgs::Marker>("/marker/capture_region", 1);
   pubComRefTraj = nh->advertise<visualization_msgs::Marker>("/marker/com_ref_traj", 1);
   pubCopRefTraj = nh->advertise<visualization_msgs::Marker>("/marker/cop_ref_traj", 1);
   pubIcpRefTraj = nh->advertise<visualization_msgs::Marker>("/marker/icp_ref_traj", 1);
@@ -48,6 +49,7 @@ RvizPublisher::~RvizPublisher(){
 void RvizPublisher::initialize(){
   footstepR.clear();
   footstepL.clear();
+  gridMap.clear();
   data.clear();
 }
 
@@ -78,6 +80,7 @@ void RvizPublisher::simulation(double time){
   data_.footL     = footL;
   data_.footstepR = footstepR;
   data_.footstepL = footstepL;
+  data_.gridMap   = gridMap;
   data.push_back(data_);
 
   publishPose();
@@ -89,6 +92,7 @@ void RvizPublisher::simulation(double time){
   publishIcp();
   publishFootstepR();
   publishFootstepL();
+  publishGridMap();
   publishComRefTraj(time);
   publishCopRefTraj(time);
   publishIcpRefTraj(time);
@@ -115,6 +119,7 @@ void RvizPublisher::playback(double time){
     footL     = data[num_timestep].footL;
     footstepR = data[num_timestep].footstepR;
     footstepL = data[num_timestep].footstepL;
+    gridMap   = data[num_timestep].gridMap;
     publishPose();
     publishComRef();
     publishCopRef();
@@ -124,6 +129,7 @@ void RvizPublisher::playback(double time){
     publishIcp();
     publishFootstepR();
     publishFootstepL();
+    publishGridMap();
     publishComRefTraj(time);
     publishCopRefTraj(time);
     publishIcpRefTraj(time);
@@ -193,6 +199,10 @@ void RvizPublisher::setFootstepR(std::vector<Eigen::Vector3f> footstepR){
 
 void RvizPublisher::setFootstepL(std::vector<Eigen::Vector3f> footstepL){
   this->footstepL = footstepL;
+}
+
+void RvizPublisher::setGridMap(std::vector<CaptData> gridMap){
+  this->gridMap = gridMap;
 }
 
 void RvizPublisher::publishPose(){
@@ -477,6 +487,69 @@ void RvizPublisher::publishFootstepL(){
     marker_array.markers[i].color.a       = 0.5;
   }
   pubFootstepL.publish(marker_array);
+}
+
+void RvizPublisher::publishGridMap(){
+  const int size = gridMap.size();
+
+  visualization_msgs::MarkerArray marker_array;
+  marker_array.markers.resize(size);
+  for (size_t i = 0; i < size; i++) {
+    marker_array.markers[i].header.frame_id = "world";
+    marker_array.markers[i].header.stamp    = ros::Time::now();
+    marker_array.markers[i].ns              = "markers";
+    marker_array.markers[i].id              = i;
+    marker_array.markers[i].lifetime        = ros::Duration();
+
+    marker_array.markers[i].type   = visualization_msgs::Marker::CUBE_LIST;
+    marker_array.markers[i].action = visualization_msgs::Marker::ADD;
+
+    marker_array.markers[i].pose.position.x    = gridMap[i].pos.x();
+    marker_array.markers[i].pose.position.y    = gridMap[i].pos.y();
+    marker_array.markers[i].pose.position.z    = gridMap[i].pos.z();
+    marker_array.markers[i].pose.orientation.x = 0.0;
+    marker_array.markers[i].pose.orientation.y = 0.0;
+    marker_array.markers[i].pose.orientation.z = 0.0;
+    marker_array.markers[i].pose.orientation.w = 1.0;
+
+    marker_array.markers[i].scale.x = 1.0;
+    marker_array.markers[i].scale.y = 1.0;
+    marker_array.markers[i].scale.z = 1.0;
+
+    switch (gridMap[i].nstep) {
+    case 0:
+      marker_array.markers[i].color.r = 1.0;
+      marker_array.markers[i].color.g = 1.0;
+      marker_array.markers[i].color.b = 1.0;
+      marker_array.markers[i].color.a = 0.0;
+      break;
+    case 1: // #cbfeff
+      marker_array.markers[i].color.r = 203 / 255.0;
+      marker_array.markers[i].color.g = 254 / 255.0;
+      marker_array.markers[i].color.b = 255 / 255.0;
+      marker_array.markers[i].color.a = 1.0;
+      break;
+    case 2: // #68fefe
+      marker_array.markers[i].color.r = 104 / 255.0;
+      marker_array.markers[i].color.g = 254 / 255.0;
+      marker_array.markers[i].color.b = 254 / 255.0;
+      marker_array.markers[i].color.a = 1.0;
+      break;
+    case 3: // #0097ff
+      marker_array.markers[i].color.r = 0 / 255.0;
+      marker_array.markers[i].color.g = 151 / 255.0;
+      marker_array.markers[i].color.b = 255 / 255.0;
+      marker_array.markers[i].color.a = 1.0;
+      break;
+    case 4: // #0000ff
+      marker_array.markers[i].color.r = 0 / 255.0;
+      marker_array.markers[i].color.g = 0 / 255.0;
+      marker_array.markers[i].color.b = 255 / 255.0;
+      marker_array.markers[i].color.a = 1.0;
+      break;
+    }
+  }
+  pubGridMap.publish(marker_array);
 }
 
 void RvizPublisher::publishComRefTraj(double time){

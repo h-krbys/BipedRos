@@ -25,12 +25,18 @@ struct LinkData {
   double      q_x, q_y, q_z, q_w; // quaternion
 };
 
+struct CaptData {
+  Eigen::Vector3f pos;
+  int             nstep;
+};
+
 struct PlotData {
   std::vector<LinkData>        link;
   Eigen::Vector3f              copRef, comRef, icpRef;
   Eigen::Vector3f              cop, com, icp;
   Eigen::Vector3f              footR, footL;
   std::vector<Eigen::Vector3f> footstepR, footstepL;
+  std::vector<CaptData>        gridMap;
 };
 
 class RvizPublisher
@@ -51,9 +57,9 @@ public:
   void setCom(Eigen::Vector3f com);
   void setCop(Eigen::Vector3f cop);
   void setIcp(Eigen::Vector3f icp);
-
   void setFootstepR(std::vector<Eigen::Vector3f> footstepR);
   void setFootstepL(std::vector<Eigen::Vector3f> footstepL);
+  void setGridMap(std::vector<CaptData> gridMap);
 
   bool timeChanged(double time);
   void simulation(double time);
@@ -68,6 +74,7 @@ public:
   void publishIcp();
   void publishFootstepR();
   void publishFootstepL();
+  void publishGridMap();
 
   void publishComRefTraj(double time);
   void publishCopRefTraj(double time);
@@ -87,12 +94,14 @@ private:
   ros::Publisher pubComRefTraj, pubCopRefTraj, pubIcpRefTraj;
   ros::Publisher pubComTraj, pubCopTraj, pubIcpTraj;
   ros::Publisher pubFootRTraj, pubFootLTraj;
+  ros::Publisher pubGridMap;
 
   std::vector<LinkData>        link;
   Eigen::Vector3f              copRef, comRef, icpRef;
   Eigen::Vector3f              cop, com, icp;
   Eigen::Vector3f              footR, footL;
   std::vector<Eigen::Vector3f> footstepR, footstepL;
+  std::vector<CaptData>        gridMap;
 
   double dt, maxTime;
 

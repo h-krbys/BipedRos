@@ -26,10 +26,13 @@ class CaptWalk : public SimpleController
   RvizPublisher publisher;
 
   // control
-  Vector3f              com, cop, icp;
   Vector3f              comRef, copRef, icpRef;
+  Vector3f              com, cop, icp;
+  Vector3f              footRRef, footLRef;
   std::vector<Vector3f> footstepR, footstepL;
   std::vector<CaptData> gridMap;
+
+  Capt::Cycloid cycloid;
 
 public:
   virtual bool initialize(SimpleControllerIO* io) override
@@ -62,9 +65,10 @@ public:
     baseToLLeg->calcForwardKinematics();
     baseToRLeg->calcForwardKinematics();
 
-    phase = 0;
+    cycloid.set(Vector3f(0, 0, 0), Vector3f(1, 0, 0), 2 );
 
-    t = 0.0;
+    phase = 0;
+    t     = 0.0;
 
     publisher.setTimeStep(dt);
 
@@ -76,23 +80,16 @@ public:
     Position posLLeg = baseToLLeg->endLink()->position();
     Position posRLeg = baseToRLeg->endLink()->position();
 
-    switch(phase) {
+    switch( phase ) {
     case 0:
       posLLeg.translation().z() += 0.1 * dt;
-      posRLeg.translation().z() += 0.1 * dt;
-      break;
-    case 1:
-      posLLeg.translation().y() -= 0.1 * dt;
-      posRLeg.translation().y() -= 0.1 * dt;
-      break;
-    case 3:
       posRLeg.translation().z() += 0.1 * dt;
       break;
     default:
       break;
     }
 
-    if(t > 2 * ( phase + 1 ) ) {
+    if( t > 2 ) {
       phase++;
     }
 
@@ -108,42 +105,6 @@ public:
       qold[i]            = q;
     }
 
-    comRef.x() = t;
-    comRef.y() = 1;
-    comRef.z() = 0;
-
-    copRef.x() = t;
-    copRef.y() = 0;
-    copRef.z() = 0;
-
-    icpRef.x() = t;
-    icpRef.y() = -1;
-    icpRef.z() = 0;
-
-    com.x() = t / 2;
-    com.y() = 1;
-    com.z() = 0;
-
-    cop.x() = t / 2;
-    cop.y() = 0;
-    cop.z() = 0;
-
-    icp.x() = t / 2;
-    icp.y() = -1;
-    icp.z() = 0;
-
-    footstepR.clear();
-    footstepR.push_back(Vector3f(t + 0.5, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(t + 1.0, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(t + 1.5, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(t + 2.0, -0.5, 0.0) );
-
-    footstepL.clear();
-    footstepL.push_back(Vector3f(t + 0.5, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(t + 1.0, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(t + 1.5, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(t + 2.0, +0.5, 0.0) );
-
     int size = 5;
     gridMap.clear();
     for(int i = 0; i < size; i++) {
@@ -155,16 +116,21 @@ public:
       }
     }
 
+    if(t < 2) {
+      footLRef = cycloid.get(t);
+    }
+
     publisher.setPose(ioBody);
-    publisher.setComRef(comRef);
-    publisher.setCopRef(copRef);
-    publisher.setIcpRef(icpRef);
-    publisher.setCom(com);
-    publisher.setCop(cop);
-    publisher.setIcp(icp);
-    publisher.setFootstepR(footstepR);
-    publisher.setFootstepL(footstepL);
-    publisher.setGridMap(gridMap);
+    // publisher.setComRef(comRef);
+    // publisher.setCopRef(copRef);
+    // publisher.setIcpRef(icpRef);
+    // publisher.setCom(com);
+    // publisher.setCop(cop);
+    // publisher.setIcp(icp);
+    // publisher.setFootstepR(footstepR);
+    // publisher.setFootstepL(footstepL);
+    // publisher.setGridMap(gridMap);
+    publisher.setFootLRef(footLRef);
     publisher.simulation(t);
 
     t += dt;

@@ -25,8 +25,9 @@ class PlotController : public SimpleController
   RvizPublisher publisher;
 
   // control
-  Vector3f              com, cop, icp;
   Vector3f              comRef, copRef, icpRef;
+  Vector3f              com, cop, icp;
+  Vector3f              footRRef, footLRef;
   std::vector<Vector3f> footstepR, footstepL;
   std::vector<CaptData> gridMap;
 
@@ -60,6 +61,13 @@ public:
     }
     baseToLLeg->calcForwardKinematics();
     baseToRLeg->calcForwardKinematics();
+
+    footRRef.x() = ioBody->link("rightFootSole")->position().translation().x();
+    footRRef.y() = ioBody->link("rightFootSole")->position().translation().y();
+    footRRef.z() = ioBody->link("rightFootSole")->position().translation().z();
+    footLRef.x() = ioBody->link("leftFootSole")->position().translation().x();
+    footLRef.y() = ioBody->link("leftFootSole")->position().translation().y();
+    footLRef.z() = ioBody->link("leftFootSole")->position().translation().z();
 
     phase = 0;
 
@@ -131,24 +139,40 @@ public:
     icp.y() = -1;
     icp.z() = 0;
 
+    if(t < 0.5) {
+      footRRef.z() += 0.2 * dt;
+    }else if(t < 1.5) {
+      footRRef.x() += 0.4 * dt;
+      footRRef.y() += 0.0 * dt;
+    }else if(t < 2) {
+      footRRef.z() -= 0.2 * dt;
+    }else if(t < 2.5) {
+      footLRef.z() += 0.2 * dt;
+    }else if(t < 3.5) {
+      footLRef.x() += 0.4 * dt;
+      footLRef.y() += 0.0 * dt;
+    }else if(t < 4) {
+      footLRef.z() -= 0.2 * dt;
+    }
+
     footstepR.clear();
-    footstepR.push_back(Vector3f(t + 0.5, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(t + 1.0, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(t + 1.5, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(t + 2.0, -0.5, 0.0) );
+    footstepR.push_back(Vector3f(0.5 * t + 0.5, -0.5, 0.0) );
+    footstepR.push_back(Vector3f(0.5 * t + 1.0, -0.5, 0.0) );
+    footstepR.push_back(Vector3f(0.5 * t + 1.5, -0.5, 0.0) );
+    footstepR.push_back(Vector3f(0.5 * t + 2.0, -0.5, 0.0) );
 
     footstepL.clear();
-    footstepL.push_back(Vector3f(t + 0.5, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(t + 1.0, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(t + 1.5, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(t + 2.0, +0.5, 0.0) );
+    footstepL.push_back(Vector3f(0.5 * t + 0.5, +0.5, 0.0) );
+    footstepL.push_back(Vector3f(0.5 * t + 1.0, +0.5, 0.0) );
+    footstepL.push_back(Vector3f(0.5 * t + 1.5, +0.5, 0.0) );
+    footstepL.push_back(Vector3f(0.5 * t + 2.0, +0.5, 0.0) );
 
     int size = 5;
     gridMap.clear();
     for(int i = 0; i < size; i++) {
       for(int j = 0; j < size; j++) {
         CaptData data_;
-        data_.pos   = Vector3f(t + 0.05 * i, t + 0.05 * j, 0.0);
+        data_.pos   = Vector3f(0.1 * t + 0.05 * i, 0.1 * t + 0.05 * j, 0.0);
         data_.nstep = i;
         gridMap.push_back(data_);
       }
@@ -158,6 +182,8 @@ public:
     publisher.setComRef(comRef);
     publisher.setCopRef(copRef);
     publisher.setIcpRef(icpRef);
+    publisher.setFootRRef(footRRef);
+    publisher.setFootLRef(footLRef);
     publisher.setCom(com);
     publisher.setCop(cop);
     publisher.setIcp(icp);

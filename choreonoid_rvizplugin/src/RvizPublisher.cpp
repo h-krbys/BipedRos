@@ -12,23 +12,27 @@ RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 4.0){
   nh = new ros::NodeHandle("");
 
   // publisher
-  pubComRef     = nh->advertise<visualization_msgs::Marker>("/marker/com_ref", 1);
-  pubCopRef     = nh->advertise<visualization_msgs::Marker>("/marker/cop_ref", 1);
-  pubIcpRef     = nh->advertise<visualization_msgs::Marker>("/marker/icp_ref", 1);
-  pubCom        = nh->advertise<visualization_msgs::Marker>("/marker/com", 1);
-  pubCop        = nh->advertise<visualization_msgs::Marker>("/marker/cop", 1);
-  pubIcp        = nh->advertise<visualization_msgs::Marker>("/marker/icp", 1);
-  pubFootstepR  = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_r", 1);
-  pubFootstepL  = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_l", 1);
-  pubGridMap    = nh->advertise<visualization_msgs::Marker>("/marker/capture_region", 1);
-  pubComRefTraj = nh->advertise<visualization_msgs::Marker>("/marker/com_ref_traj", 1);
-  pubCopRefTraj = nh->advertise<visualization_msgs::Marker>("/marker/cop_ref_traj", 1);
-  pubIcpRefTraj = nh->advertise<visualization_msgs::Marker>("/marker/icp_ref_traj", 1);
-  pubComTraj    = nh->advertise<visualization_msgs::Marker>("/marker/com_traj", 1);
-  pubCopTraj    = nh->advertise<visualization_msgs::Marker>("/marker/cop_traj", 1);
-  pubIcpTraj    = nh->advertise<visualization_msgs::Marker>("/marker/icp_traj", 1);
-  pubFootRTraj  = nh->advertise<visualization_msgs::Marker>("/marker/foot_r_traj", 1);
-  pubFootLTraj  = nh->advertise<visualization_msgs::Marker>("/marker/foot_l_traj", 1);
+  pubComRef       = nh->advertise<visualization_msgs::Marker>("/marker/com_ref", 1);
+  pubCopRef       = nh->advertise<visualization_msgs::Marker>("/marker/cop_ref", 1);
+  pubIcpRef       = nh->advertise<visualization_msgs::Marker>("/marker/icp_ref", 1);
+  pubCom          = nh->advertise<visualization_msgs::Marker>("/marker/com", 1);
+  pubCop          = nh->advertise<visualization_msgs::Marker>("/marker/cop", 1);
+  pubIcp          = nh->advertise<visualization_msgs::Marker>("/marker/icp", 1);
+  pubFootRRef     = nh->advertise<visualization_msgs::Marker>("/marker/foot_r_ref", 1);
+  pubFootLRef     = nh->advertise<visualization_msgs::Marker>("/marker/foot_l_ref", 1);
+  pubFootstepR    = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_r", 1);
+  pubFootstepL    = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_l", 1);
+  pubGridMap      = nh->advertise<visualization_msgs::Marker>("/marker/capture_region", 1);
+  pubComRefTraj   = nh->advertise<visualization_msgs::Marker>("/marker/com_ref_traj", 1);
+  pubCopRefTraj   = nh->advertise<visualization_msgs::Marker>("/marker/cop_ref_traj", 1);
+  pubIcpRefTraj   = nh->advertise<visualization_msgs::Marker>("/marker/icp_ref_traj", 1);
+  pubFootRRefTraj = nh->advertise<visualization_msgs::Marker>("/marker/foot_r_ref_traj", 1);
+  pubFootLRefTraj = nh->advertise<visualization_msgs::Marker>("/marker/foot_l_ref_traj", 1);
+  pubComTraj      = nh->advertise<visualization_msgs::Marker>("/marker/com_traj", 1);
+  pubCopTraj      = nh->advertise<visualization_msgs::Marker>("/marker/cop_traj", 1);
+  pubIcpTraj      = nh->advertise<visualization_msgs::Marker>("/marker/icp_traj", 1);
+  pubFootRTraj    = nh->advertise<visualization_msgs::Marker>("/marker/foot_r_traj", 1);
+  pubFootLTraj    = nh->advertise<visualization_msgs::Marker>("/marker/foot_l_traj", 1);
 
   // get instance of each bar
   timeBar = TimeBar::instance();
@@ -73,6 +77,8 @@ void RvizPublisher::simulation(double time){
   data_.copRef    = copRef;
   data_.comRef    = comRef;
   data_.icpRef    = icpRef;
+  data_.footRRef  = footRRef;
+  data_.footLRef  = footLRef;
   data_.cop       = cop;
   data_.com       = com;
   data_.icp       = icp;
@@ -83,24 +89,7 @@ void RvizPublisher::simulation(double time){
   data_.gridMap   = gridMap;
   data.push_back(data_);
 
-  publishPose();
-  publishComRef();
-  publishCopRef();
-  publishIcpRef();
-  publishCom();
-  publishCop();
-  publishIcp();
-  publishFootstepR();
-  publishFootstepL();
-  publishGridMap();
-  publishComRefTraj(time);
-  publishCopRefTraj(time);
-  publishIcpRefTraj(time);
-  publishComTraj(time);
-  publishCopTraj(time);
-  publishIcpTraj(time);
-  publishFootRTraj(time);
-  publishFootLTraj(time);
+  publishAll(time);
 
   maxTime = time;
 }
@@ -112,6 +101,8 @@ void RvizPublisher::playback(double time){
     copRef    = data[num_timestep].copRef;
     comRef    = data[num_timestep].comRef;
     icpRef    = data[num_timestep].icpRef;
+    footRRef  = data[num_timestep].footRRef;
+    footLRef  = data[num_timestep].footLRef;
     cop       = data[num_timestep].cop;
     com       = data[num_timestep].com;
     icp       = data[num_timestep].icp;
@@ -120,25 +111,33 @@ void RvizPublisher::playback(double time){
     footstepR = data[num_timestep].footstepR;
     footstepL = data[num_timestep].footstepL;
     gridMap   = data[num_timestep].gridMap;
-    publishPose();
-    publishComRef();
-    publishCopRef();
-    publishIcpRef();
-    publishCom();
-    publishCop();
-    publishIcp();
-    publishFootstepR();
-    publishFootstepL();
-    publishGridMap();
-    publishComRefTraj(time);
-    publishCopRefTraj(time);
-    publishIcpRefTraj(time);
-    publishComTraj(time);
-    publishCopTraj(time);
-    publishIcpTraj(time);
-    publishFootRTraj(time);
-    publishFootLTraj(time);
+    publishAll(time);
   }
+}
+
+void RvizPublisher::publishAll(double time){
+  publishPose();
+  publishComRef();
+  publishCopRef();
+  publishIcpRef();
+  publishFootRRef();
+  publishFootLRef();
+  publishCom();
+  publishCop();
+  publishIcp();
+  publishFootstepR();
+  publishFootstepL();
+  publishGridMap();
+  publishComRefTraj(time);
+  publishCopRefTraj(time);
+  publishIcpRefTraj(time);
+  publishFootRRefTraj(time);
+  publishFootLRefTraj(time);
+  publishComTraj(time);
+  publishCopTraj(time);
+  publishIcpTraj(time);
+  publishFootRTraj(time);
+  publishFootLTraj(time);
 }
 
 void RvizPublisher::setTimeStep(double timestep){
@@ -179,6 +178,14 @@ void RvizPublisher::setCopRef(Eigen::Vector3f copRef){
 
 void RvizPublisher::setIcpRef(Eigen::Vector3f icpRef){
   this->icpRef = icpRef;
+}
+
+void RvizPublisher::setFootRRef(Eigen::Vector3f footRRef){
+  this->footRRef = footRRef;
+}
+
+void RvizPublisher::setFootLRef(Eigen::Vector3f footLRef){
+  this->footLRef = footLRef;
 }
 
 void RvizPublisher::setCom(Eigen::Vector3f com){
@@ -317,6 +324,72 @@ void RvizPublisher::publishIcpRef(){
   marker.lifetime = ros::Duration();
 
   pubIcpRef.publish(marker);
+}
+
+void RvizPublisher::publishFootRRef(){
+  visualization_msgs::Marker marker;
+
+  marker.header.frame_id = "world";
+  marker.header.stamp    = ros::Time::now();
+  marker.ns              = "markers";
+  marker.id              = 0;
+  marker.lifetime        = ros::Duration();
+
+  marker.type   = visualization_msgs::Marker::MESH_RESOURCE;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.pose.position.x    = footRRef.x();
+  marker.pose.position.y    = footRRef.y();
+  marker.pose.position.z    = footRRef.z();
+  marker.pose.orientation.x = 0.0;
+  marker.pose.orientation.y = 0.0;
+  marker.pose.orientation.z = 0.0;
+  marker.pose.orientation.w = 1.0;
+
+  marker.scale.x = 1.0;
+  marker.scale.y = 1.0;
+  marker.scale.z = 1.0;
+
+  marker.mesh_resource = "package://choreonoid_rvizplugin/meshes/valkyrie_foot.stl";
+  marker.color.r       = 1.0;
+  marker.color.g       = 1.0;
+  marker.color.b       = 1.0;
+  marker.color.a       = 0.5;
+
+  pubFootRRef.publish(marker);
+}
+
+void RvizPublisher::publishFootLRef(){
+  visualization_msgs::Marker marker;
+
+  marker.header.frame_id = "world";
+  marker.header.stamp    = ros::Time::now();
+  marker.ns              = "markers";
+  marker.id              = 0;
+  marker.lifetime        = ros::Duration();
+
+  marker.type   = visualization_msgs::Marker::MESH_RESOURCE;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.pose.position.x    = footLRef.x();
+  marker.pose.position.y    = footLRef.y();
+  marker.pose.position.z    = footLRef.z();
+  marker.pose.orientation.x = 0.0;
+  marker.pose.orientation.y = 0.0;
+  marker.pose.orientation.z = 0.0;
+  marker.pose.orientation.w = 1.0;
+
+  marker.scale.x = 1.0;
+  marker.scale.y = 1.0;
+  marker.scale.z = 1.0;
+
+  marker.mesh_resource = "package://choreonoid_rvizplugin/meshes/valkyrie_foot.stl";
+  marker.color.r       = 1.0;
+  marker.color.g       = 1.0;
+  marker.color.b       = 1.0;
+  marker.color.a       = 0.5;
+
+  pubFootLRef.publish(marker);
 }
 
 void RvizPublisher::publishCom(){
@@ -646,6 +719,72 @@ void RvizPublisher::publishIcpRefTraj(double time){
   marker.lifetime = ros::Duration();
 
   pubIcpRefTraj.publish(marker);
+}
+
+void RvizPublisher::publishFootRRefTraj(double time){
+  const int num_points = time / dt;
+
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = "world";
+  marker.header.stamp    = ros::Time::now();
+  marker.ns              = "markers";
+  marker.id              = 0;
+
+  marker.type   = visualization_msgs::Marker::LINE_STRIP;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.scale.x = lineWidth;
+  marker.scale.y = lineWidth;
+  marker.scale.z = lineWidth;
+
+  marker.color.r = 1.0;
+  marker.color.g = 1.0;
+  marker.color.b = 1.0;
+  marker.color.a = 0.5;
+
+  marker.points.resize(num_points);
+  for (int i = 0; i < num_points; i++) {
+    marker.points[i].x = data[i].footRRef.x();
+    marker.points[i].y = data[i].footRRef.y();
+    marker.points[i].z = data[i].footRRef.z();
+  }
+
+  marker.lifetime = ros::Duration();
+
+  pubFootRRefTraj.publish(marker);
+}
+
+void RvizPublisher::publishFootLRefTraj(double time){
+  const int num_points = time / dt;
+
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = "world";
+  marker.header.stamp    = ros::Time::now();
+  marker.ns              = "markers";
+  marker.id              = 0;
+
+  marker.type   = visualization_msgs::Marker::LINE_STRIP;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.scale.x = lineWidth;
+  marker.scale.y = lineWidth;
+  marker.scale.z = lineWidth;
+
+  marker.color.r = 1.0;
+  marker.color.g = 1.0;
+  marker.color.b = 1.0;
+  marker.color.a = 0.5;
+
+  marker.points.resize(num_points);
+  for (int i = 0; i < num_points; i++) {
+    marker.points[i].x = data[i].footLRef.x();
+    marker.points[i].y = data[i].footLRef.y();
+    marker.points[i].z = data[i].footLRef.z();
+  }
+
+  marker.lifetime = ros::Duration();
+
+  pubFootLRefTraj.publish(marker);
 }
 
 void RvizPublisher::publishComTraj(double time){

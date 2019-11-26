@@ -9,13 +9,19 @@ using namespace cnoid;
 const double pgain = 10;
 const double dgain = 0.0;
 
+namespace {
+enum Phase {
+  INIT, WAIT, SSP_R, SSP_L, STOP
+};
+}
+
 class CaptWalk : public SimpleController
 {
   BodyPtr             ioBody;
-  double              t, dt;
+  double              t, dt, elapsed;
   std::vector<double> qref;
   std::vector<double> qold;
-  int                 phase;
+  Phase               phase;
 
   // virtual body
   BodyPtr                    virtualBody;
@@ -25,21 +31,46 @@ class CaptWalk : public SimpleController
   // rviz
   RvizPublisher publisher;
 
+  // capturability parameters
+  Capt::Model         *model;
+  Capt::Param         *param;
+  Capt::Grid          *grid;
+  Capt::Capturability *capturability;
+  Capt::GridMap       *gridmap;
+  Capt::Search        *search;
+  double               g, h, omega;
+
   // control
   Vector3f              comRef, copRef, icpRef;
-  Vector3f              com, cop, icp;
+  Vector3f              com, com_, comVel, cop, icp;
   Vector3f              footRRef, footLRef;
+  Vector3f              footR, footL;
   std::vector<Vector3f> footstepR, footstepL;
   std::vector<CaptData> gridMap;
 
-  Capt::Cycloid cycloid;
-
 public:
+  void substitute(Vector3 from, Vector3f *to){
+    to->x() = from.x();
+    to->y() = from.y();
+    to->z() = from.z();
+  }
+
+  void sync(){
+    substitute(ioBody->calcCenterOfMass(), &com);
+    comVel = ( com - com_ ) / dt;
+    com_   = com;
+    icp    = com + comVel / omega;
+    substitute(ioBody->link("rightFootSole")->position().translation(), &footR);
+    substitute(ioBody->link("leftFootSole")->position().translation(),  &footL);
+  }
+
   virtual bool initialize(SimpleControllerIO* io) override
   {
     ioBody = io->body();
     dt     = io->timeStep();
 
+    // set input/output
+    // set output to robot
     for(int i = 0; i < ioBody->numJoints(); ++i) {
       Link* joint = ioBody->joint(i);
       joint->setActuationMode(Link::JOINT_VELOCITY);
@@ -47,7 +78,7 @@ public:
       qref.push_back(joint->q() );
     }
     qold = qref;
-
+    // set input from robot
     for (int i = 0; i < ioBody->numLinks(); ++i) {
       io->enableInput(io->body()->link(i), LINK_POSITION);
     }
@@ -65,10 +96,22 @@ public:
     baseToLLeg->calcForwardKinematics();
     baseToRLeg->calcForwardKinematics();
 
-    cycloid.set(Vector3f(0, 0, 0), Vector3f(1, 0, 0), 2 );
+    // set capturability parameters
+    model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
+    param         = new Capt::Param("/home/dl-box/study/capturability/data/valkyrie_xy.xml");
+    grid          = new Capt::Grid(param);
+    capturability = new Capt::Capturability(grid);
+    gridmap       = new Capt::GridMap(param);
+    search        = new Capt::Search(gridmap, grid, capturability);
+    model->read(&g, "gravity");
+    model->read(&h, "com_height");
+    omega = sqrt(g / h);
+    capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
+    capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
 
-    phase = 0;
-    t     = 0.0;
+    phase   = INIT;
+    t       = 0.0;
+    elapsed = 0.0;
 
     publisher.setTimeStep(dt);
 
@@ -77,20 +120,45 @@ public:
 
   virtual bool control() override
   {
+    // get current values from robot
+    sync();
+
     Position posLLeg = baseToLLeg->endLink()->position();
     Position posRLeg = baseToRLeg->endLink()->position();
 
     switch( phase ) {
-    case 0:
+    case INIT:
       posLLeg.translation().z() += 0.1 * dt;
       posRLeg.translation().z() += 0.1 * dt;
+      if( elapsed > 2 ) {
+        phase   = WAIT;
+        elapsed = 0.0;
+      }
+      break;
+    case WAIT:
+      if( elapsed > 2 ) {
+        Capt::vec2_t s_rfoot(footR.x(), footR.y() );
+        Capt::vec2_t s_lfoot(footL.x(), footL.y() );
+        Capt::vec2_t s_icp(icp.x(), icp.y() );
+        Capt::vec2_t g_foot(1.0, 0.0);
+        double       stance = 0.4;
+
+        search->setStanceWidth(stance);
+        search->setStart(s_rfoot, s_lfoot, s_icp, Capt::Foot::FOOT_L);
+        search->setGoal(g_foot);
+
+        search->exe();
+
+        Capt::Trans trans = search->getTrans();
+
+        phase   = SSP_R;
+        elapsed = 0.0;
+      }
+      break;
+    case SSP_R:
       break;
     default:
       break;
-    }
-
-    if( t > 2 ) {
-      phase++;
     }
 
     baseToLLeg->calcInverseKinematics(posLLeg);
@@ -116,10 +184,6 @@ public:
       }
     }
 
-    if(t < 2) {
-      footLRef = cycloid.get(t);
-    }
-
     publisher.setPose(ioBody);
     // publisher.setComRef(comRef);
     // publisher.setCopRef(copRef);
@@ -133,7 +197,8 @@ public:
     publisher.setFootLRef(footLRef);
     publisher.simulation(t);
 
-    t += dt;
+    t       += dt;
+    elapsed += dt;
 
     return true;
   }

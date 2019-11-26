@@ -102,12 +102,12 @@ public:
     grid          = new Capt::Grid(param);
     capturability = new Capt::Capturability(grid);
     gridmap       = new Capt::GridMap(param);
-    search        = new Capt::Search(gridmap, grid, capturability);
     model->read(&g, "gravity");
     model->read(&h, "com_height");
     omega = sqrt(g / h);
     capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
     capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
+    search = new Capt::Search(gridmap, grid, capturability);
 
     phase   = INIT;
     t       = 0.0;
@@ -143,13 +143,19 @@ public:
         Capt::vec2_t g_foot(1.0, 0.0);
         double       stance = 0.4;
 
+        printf("footR %1.6lf, %1.6lf\n", footR.x(), footR.y() );
+        printf("footL %1.6lf, %1.6lf\n", footL.x(), footL.y() );
+        printf("ICP   %1.6lf, %1.6lf\n", icp.x(), icp.y() );
+
         search->setStanceWidth(stance);
-        search->setStart(s_rfoot, s_lfoot, s_icp, Capt::Foot::FOOT_L);
+        search->setStart(s_rfoot, s_lfoot, s_icp, Capt::Foot::FOOT_R);
         search->setGoal(g_foot);
 
         search->exe();
 
-        Capt::Trans trans = search->getTrans();
+        footstepR = search->getFootstepR();
+        footstepL = search->getFootstepL();
+        footstepR.erase(footstepR.begin() ); // 現在の支持足位置と同じなので削除
 
         phase   = SSP_R;
         elapsed = 0.0;
@@ -191,10 +197,10 @@ public:
     // publisher.setCom(com);
     // publisher.setCop(cop);
     // publisher.setIcp(icp);
-    // publisher.setFootstepR(footstepR);
-    // publisher.setFootstepL(footstepL);
+    publisher.setFootstepR(footstepR);
+    publisher.setFootstepL(footstepL);
     // publisher.setGridMap(gridMap);
-    publisher.setFootLRef(footLRef);
+    // publisher.setFootLRef(footLRef);
     publisher.simulation(t);
 
     t       += dt;

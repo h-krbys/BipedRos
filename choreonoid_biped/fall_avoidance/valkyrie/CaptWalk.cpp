@@ -36,7 +36,7 @@ class CaptWalk : public SimpleController
   Capt::Param         *param;
   Capt::Grid          *grid;
   Capt::Capturability *capturability;
-  Capt::GridMap       *gridmap;
+  Capt::Tree          *tree;
   Capt::Search        *search;
   double               g, h, omega;
 
@@ -98,16 +98,16 @@ public:
 
     // set capturability parameters
     model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
-    param         = new Capt::Param("/home/dl-box/study/capturability/data/valkyrie_xy.xml");
+    param         = new Capt::Param("/home/dl-box/study/capturability/data/footstep.xml");
     grid          = new Capt::Grid(param);
     capturability = new Capt::Capturability(grid);
-    gridmap       = new Capt::GridMap(param);
     model->read(&g, "gravity");
     model->read(&h, "com_height");
     omega = sqrt(g / h);
     capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
     capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
-    search = new Capt::Search(gridmap, grid, capturability);
+    tree   = new Capt::Tree(capturability, grid, param);
+    search = new Capt::Search(grid, tree);
 
     phase   = INIT;
     t       = 0.0;
@@ -147,11 +147,10 @@ public:
         printf("footL %1.6lf, %1.6lf\n", footL.x(), footL.y() );
         printf("ICP   %1.6lf, %1.6lf\n", icp.x(), icp.y() );
 
-        search->setStanceWidth(stance);
         search->setStart(s_rfoot, s_lfoot, s_icp, Capt::Foot::FOOT_R);
         search->setGoal(g_foot);
 
-        search->exe();
+        search->calc();
 
         footstepR = search->getFootstepR();
         footstepL = search->getFootstepL();

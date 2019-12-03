@@ -34,11 +34,13 @@ class CaptWalk : public SimpleController
   // capturability parameters
   Capt::Model         *model;
   Capt::Param         *param;
+  Capt::Config        *config;
   Capt::Grid          *grid;
   Capt::Capturability *capturability;
-  Capt::Tree          *tree;
-  Capt::Search        *search;
+  Capt::Planner       *planner;
   double               g, h, omega;
+  planner::Input       input;
+  planner::Output      output;
 
   // control
   Vector3f              comRef, copRef, icpRef;
@@ -99,15 +101,15 @@ public:
     // set capturability parameters
     model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
     param         = new Capt::Param("/home/dl-box/study/capturability/data/footstep.xml");
+    config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
     grid          = new Capt::Grid(param);
     capturability = new Capt::Capturability(grid);
     model->read(&g, "gravity");
     model->read(&h, "com_height");
-    omega = sqrt(g / h);
+    model->read(&omega, "omega");
     capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
     capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
-    tree   = new Capt::Tree(capturability, grid, param);
-    search = new Capt::Search(grid, tree);
+    planner = new Capt::Planner(model, param, config, grid, capturability);
 
     phase   = INIT;
     t       = 0.0;
@@ -137,27 +139,28 @@ public:
       break;
     case WAIT:
       if( elapsed > 2 ) {
-        Capt::vec2_t s_rfoot(footR.x(), footR.y() );
-        Capt::vec2_t s_lfoot(footL.x(), footL.y() );
-        Capt::vec2_t s_icp(icp.x(), icp.y() );
-        Capt::vec2_t g_foot(1.0, 0.0);
-        double       stance = 0.4;
+        elapsed = 0.0;
 
-        printf("footR %1.6lf, %1.6lf\n", footR.x(), footR.y() );
-        printf("footL %1.6lf, %1.6lf\n", footL.x(), footL.y() );
-        printf("ICP   %1.6lf, %1.6lf\n", icp.x(), icp.y() );
+        input.elapsed = elapsed;
+        input.suf     = Capt::Foot::FOOT_R;
+        input.rfoot   = footR;
+        input.lfoot   = footL;
+        input.com     = com;
+        input.com_vel = comVel;
+        input.goal    = Capt::vec3_t(1.0, 0.0, 0.0);
+        input.stance  = 0.4;
 
-        search->setStart(s_rfoot, s_lfoot, s_icp, Capt::Foot::FOOT_R);
-        search->setGoal(g_foot);
+        printf("footR %+1.4lf, %+1.4lf\n", footR.x(), footR.y() );
+        printf("footL %+1.4lf, %+1.4lf\n", footL.x(), footL.y() );
+        printf("ICP   %+1.4lf, %+1.4lf\n", icp.x(), icp.y() );
 
-        search->calc();
+        planner->set(input);
 
-        footstepR = search->getFootstepR();
-        footstepL = search->getFootstepL();
+        footstepR = planner->getFootstepR();
+        footstepL = planner->getFootstepL();
         footstepR.erase(footstepR.begin() ); // 現在の支持足位置と同じなので削除
 
-        phase   = SSP_R;
-        elapsed = 0.0;
+        phase = SSP_R;
       }
       break;
     case SSP_R:

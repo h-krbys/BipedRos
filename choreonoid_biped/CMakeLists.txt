@@ -53,7 +53,7 @@ install(DIRECTORY project DESTINATION ${CHOREONOID_SHARE_SUBDIR})
 
 if(EXISTS ${CAPT_DIR})
   foreach(directory ${CAPT_DIR})
-    file(GLOB_RECURSE files ${CAPT_DIR}/src/*.cpp ${CAPT_DIR}plot/src/*.cpp)
+    file(GLOB_RECURSE files ${CAPT_DIR}/src/*.cpp ${CAPT_DIR}/plot/src/*.cpp)
     list(APPEND CAPT_SOURCES ${files})
   endforeach()
   include_directories(${CAPT_DIR}/include)

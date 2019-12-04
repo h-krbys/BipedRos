@@ -148,10 +148,6 @@ public:
         input.goal    = Capt::vec3_t(1.0, 0.0, 0.0);
         input.stance  = 0.4;
 
-        printf("footR %+1.4lf, %+1.4lf\n", footR.x(), footR.y() );
-        printf("footL %+1.4lf, %+1.4lf\n", footL.x(), footL.y() );
-        printf("ICP   %+1.4lf, %+1.4lf\n", icp.x(), icp.y() );
-
         planner->set(input);
 
         footstepR = planner->getFootstepR();

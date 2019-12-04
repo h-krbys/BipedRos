@@ -152,7 +152,6 @@ public:
 
         footstepR = planner->getFootstepR();
         footstepL = planner->getFootstepL();
-        footstepR.erase(footstepR.begin() ); // 現在の支持足位置と同じなので削除
 
         phase = SSP_R;
       }
@@ -179,7 +178,6 @@ public:
 
         footstepR = planner->getFootstepR();
         footstepL = planner->getFootstepL();
-        footstepL.erase(footstepL.begin() ); // 現在の支持足位置と同じなので削除
 
         phase = SSP_L;
       }
@@ -206,7 +204,6 @@ public:
 
         footstepR = planner->getFootstepR();
         footstepL = planner->getFootstepL();
-        footstepR.erase(footstepR.begin() ); // 現在の支持足位置と同じなので削除
 
         phase = SSP_R;
       }

@@ -38,7 +38,7 @@ class CaptWalk : public SimpleController
   Capt::Grid          *grid;
   Capt::Capturability *capturability;
   Capt::Planner       *planner;
-  double               g, h, omega;
+  double               omega;
   planner::Input       input;
   planner::Output      output;
 
@@ -104,12 +104,11 @@ public:
     config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
     grid          = new Capt::Grid(param);
     capturability = new Capt::Capturability(grid);
-    model->read(&g, "gravity");
-    model->read(&h, "com_height");
-    model->read(&omega, "omega");
     capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
     capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
     planner = new Capt::Planner(model, param, config, grid, capturability);
+
+    model->read(&omega, "omega");
 
     phase   = INIT;
     t       = 0.0;
@@ -138,15 +137,14 @@ public:
       }
       break;
     case WAIT:
-      if( elapsed > 2 ) {
+      if( elapsed > 1 ) {
         elapsed = 0.0;
 
         input.elapsed = elapsed;
         input.suf     = Capt::Foot::FOOT_R;
         input.rfoot   = footR;
         input.lfoot   = footL;
-        input.com     = com;
-        input.com_vel = comVel;
+        input.icp     = icp;
         input.goal    = Capt::vec3_t(1.0, 0.0, 0.0);
         input.stance  = 0.4;
 
@@ -164,6 +162,58 @@ public:
       }
       break;
     case SSP_R:
+      output = planner->get(elapsed);
+      if(elapsed < output.duration) {
+        footRRef = output.rfoot;
+        footLRef = output.lfoot;
+        icpRef   = output.icp;
+        copRef   = output.cop;
+      }else{
+        elapsed = 0.0;
+
+        input.elapsed = elapsed;
+        input.suf     = Capt::Foot::FOOT_L;
+        input.rfoot   = footRRef;
+        input.lfoot   = footLRef;
+        input.icp     = icpRef;
+        input.goal    = Capt::vec3_t(1.0, 0.0, 0.0);
+        input.stance  = 0.4;
+
+        planner->set(input);
+
+        footstepR = planner->getFootstepR();
+        footstepL = planner->getFootstepL();
+        footstepL.erase(footstepL.begin() ); // 現在の支持足位置と同じなので削除
+
+        phase = SSP_L;
+      }
+      break;
+    case SSP_L:
+      output = planner->get(elapsed);
+      if(elapsed < output.duration) {
+        footRRef = output.rfoot;
+        footLRef = output.lfoot;
+        icpRef   = output.icp;
+        copRef   = output.cop;
+      }else{
+        elapsed = 0.0;
+
+        input.elapsed = elapsed;
+        input.suf     = Capt::Foot::FOOT_R;
+        input.rfoot   = footRRef;
+        input.lfoot   = footLRef;
+        input.icp     = icpRef;
+        input.goal    = Capt::vec3_t(1.0, 0.0, 0.0);
+        input.stance  = 0.4;
+
+        planner->set(input);
+
+        footstepR = planner->getFootstepR();
+        footstepL = planner->getFootstepL();
+        footstepR.erase(footstepR.begin() ); // 現在の支持足位置と同じなので削除
+
+        phase = SSP_R;
+      }
       break;
     default:
       break;
@@ -194,8 +244,10 @@ public:
 
     publisher.setPose(ioBody);
     // publisher.setComRef(comRef);
-    // publisher.setCopRef(copRef);
-    // publisher.setIcpRef(icpRef);
+    publisher.setCopRef(copRef);
+    publisher.setIcpRef(icpRef);
+    publisher.setFootRRef(footRRef);
+    publisher.setFootLRef(footLRef);
     // publisher.setCom(com);
     // publisher.setCop(cop);
     // publisher.setIcp(icp);

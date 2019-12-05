@@ -240,8 +240,6 @@ public:
       qold[i]            = q;
     }
 
-    printf("size %d\n", (int)gridMap.size() );
-
     publisher.setPose(ioBody);
     // publisher.setComRef(comRef);
     publisher.setCopRef(copRef);

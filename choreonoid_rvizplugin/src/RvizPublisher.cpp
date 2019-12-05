@@ -567,25 +567,25 @@ void RvizPublisher::publishGridMap(){
   const int size = (int)gridMap.size();
 
   visualization_msgs::Marker marker;
+  marker.header.frame_id = "world";
+  marker.header.stamp    = ros::Time::now();
+  marker.ns              = "markers";
+  marker.id              = 0;
+  marker.lifetime        = ros::Duration();
+
+  marker.type   = visualization_msgs::Marker::CUBE_LIST;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.scale.x = 0.05;
+  marker.scale.y = 0.05;
+  marker.scale.z = 0.001;
+
   marker.points.resize(size);
   marker.colors.resize(size);
   for (size_t i = 0; i < size; i++) {
-    marker.header.frame_id = "world";
-    marker.header.stamp    = ros::Time::now();
-    marker.ns              = "markers";
-    marker.id              = i;
-    marker.lifetime        = ros::Duration();
-
-    marker.type   = visualization_msgs::Marker::CUBE_LIST;
-    marker.action = visualization_msgs::Marker::ADD;
-
     marker.points[i].x = gridMap[i].pos.x();
     marker.points[i].y = gridMap[i].pos.y();
     marker.points[i].z = gridMap[i].pos.z();
-
-    marker.scale.x = 0.05;
-    marker.scale.y = 0.05;
-    marker.scale.z = 0.001;
 
     switch (gridMap[i].nstep) {
     case 0:

@@ -28,6 +28,11 @@ struct LinkData {
 struct CaptData {
   Eigen::Vector3f pos;
   int             nstep;
+
+  void operator=(const CaptData &data) {
+    this->pos   = data.pos;
+    this->nstep = data.nstep;
+  }
 };
 
 struct PlotData {

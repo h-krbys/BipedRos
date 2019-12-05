@@ -57,6 +57,16 @@ public:
     to->z() = from.z();
   }
 
+  void substitute(std::vector<Capt::CaptData> from, std::vector<CaptData> *to){
+    to->clear();
+    for(size_t i = 0; i < from.size(); i++) {
+      CaptData data;
+      data.pos   = from[i].pos;
+      data.nstep = from[i].nstep;
+      to->push_back(data);
+    }
+  }
+
   void sync(){
     substitute(ioBody->calcCenterOfMass(), &com);
     comVel = ( com - com_ ) / dt;
@@ -153,6 +163,8 @@ public:
         footstepR = planner->getFootstepR();
         footstepL = planner->getFootstepL();
 
+        substitute(planner->getCaptureRegion(), &gridMap);
+
         phase = SSP_R;
       }
       break;
@@ -178,6 +190,8 @@ public:
 
         footstepR = planner->getFootstepR();
         footstepL = planner->getFootstepL();
+
+        substitute(planner->getCaptureRegion(), &gridMap);
 
         phase = SSP_L;
       }
@@ -205,6 +219,8 @@ public:
         footstepR = planner->getFootstepR();
         footstepL = planner->getFootstepL();
 
+        substitute(planner->getCaptureRegion(), &gridMap);
+
         phase = SSP_R;
       }
       break;
@@ -224,16 +240,7 @@ public:
       qold[i]            = q;
     }
 
-    int size = 5;
-    gridMap.clear();
-    for(int i = 0; i < size; i++) {
-      for(int j = 0; j < size; j++) {
-        CaptData data_;
-        data_.pos   = Vector3f(t + 0.05 * i, t + 0.05 * j, 0.0);
-        data_.nstep = i;
-        gridMap.push_back(data_);
-      }
-    }
+    printf("size %d\n", (int)gridMap.size() );
 
     publisher.setPose(ioBody);
     // publisher.setComRef(comRef);
@@ -246,7 +253,7 @@ public:
     // publisher.setIcp(icp);
     publisher.setFootstepR(footstepR);
     publisher.setFootstepL(footstepL);
-    // publisher.setGridMap(gridMap);
+    publisher.setGridMap(gridMap);
     // publisher.setFootLRef(footLRef);
     publisher.simulation(t);
 

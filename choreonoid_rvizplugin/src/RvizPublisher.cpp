@@ -209,6 +209,7 @@ void RvizPublisher::setFootstepL(std::vector<Eigen::Vector3f> footstepL){
 }
 
 void RvizPublisher::setGridMap(std::vector<CaptData> gridMap){
+  this->gridMap.clear();
   this->gridMap = gridMap;
 }
 

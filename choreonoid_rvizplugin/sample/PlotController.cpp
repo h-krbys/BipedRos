@@ -25,10 +25,10 @@ class PlotController : public SimpleController
   RvizPublisher publisher;
 
   // control
-  Vector3f              comRef, copRef, icpRef;
-  Vector3f              com, cop, icp;
-  Vector3f              footRRef, footLRef;
-  std::vector<Vector3f> footstepR, footstepL;
+  Vector3               comRef, copRef, icpRef;
+  Vector3               com, cop, icp;
+  Vector3               footRRef, footLRef;
+  std::vector<Vector3>  footstepR, footstepL;
   std::vector<CaptData> gridMap;
 
 public:
@@ -156,23 +156,23 @@ public:
     }
 
     footstepR.clear();
-    footstepR.push_back(Vector3f(0.5 * t + 0.5, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(0.5 * t + 1.0, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(0.5 * t + 1.5, -0.5, 0.0) );
-    footstepR.push_back(Vector3f(0.5 * t + 2.0, -0.5, 0.0) );
+    footstepR.push_back(Vector3(0.5 * t + 0.5, -0.5, 0.0) );
+    footstepR.push_back(Vector3(0.5 * t + 1.0, -0.5, 0.0) );
+    footstepR.push_back(Vector3(0.5 * t + 1.5, -0.5, 0.0) );
+    footstepR.push_back(Vector3(0.5 * t + 2.0, -0.5, 0.0) );
 
     footstepL.clear();
-    footstepL.push_back(Vector3f(0.5 * t + 0.5, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(0.5 * t + 1.0, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(0.5 * t + 1.5, +0.5, 0.0) );
-    footstepL.push_back(Vector3f(0.5 * t + 2.0, +0.5, 0.0) );
+    footstepL.push_back(Vector3(0.5 * t + 0.5, +0.5, 0.0) );
+    footstepL.push_back(Vector3(0.5 * t + 1.0, +0.5, 0.0) );
+    footstepL.push_back(Vector3(0.5 * t + 1.5, +0.5, 0.0) );
+    footstepL.push_back(Vector3(0.5 * t + 2.0, +0.5, 0.0) );
 
     int size = 5;
     gridMap.clear();
     for(int i = 0; i < size; i++) {
       for(int j = 0; j < size; j++) {
         CaptData data_;
-        data_.pos   = Vector3f(0.1 * t + 0.05 * i, 0.1 * t + 0.05 * j, 0.0);
+        data_.pos   = Vector3(0.1 * t + 0.05 * i, 0.1 * t + 0.05 * j, 0.0);
         data_.nstep = i;
         gridMap.push_back(data_);
       }

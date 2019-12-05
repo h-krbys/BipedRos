@@ -168,43 +168,43 @@ void RvizPublisher::setPose(cnoid::BodyPtr body){
   footL.z() = body->link("leftFootSole")->translation().z();
 }
 
-void RvizPublisher::setComRef(Eigen::Vector3f comRef){
+void RvizPublisher::setComRef(Vector3 comRef){
   this->comRef = comRef;
 }
 
-void RvizPublisher::setCopRef(Eigen::Vector3f copRef){
+void RvizPublisher::setCopRef(Vector3 copRef){
   this->copRef = copRef;
 }
 
-void RvizPublisher::setIcpRef(Eigen::Vector3f icpRef){
+void RvizPublisher::setIcpRef(Vector3 icpRef){
   this->icpRef = icpRef;
 }
 
-void RvizPublisher::setFootRRef(Eigen::Vector3f footRRef){
+void RvizPublisher::setFootRRef(Vector3 footRRef){
   this->footRRef = footRRef;
 }
 
-void RvizPublisher::setFootLRef(Eigen::Vector3f footLRef){
+void RvizPublisher::setFootLRef(Vector3 footLRef){
   this->footLRef = footLRef;
 }
 
-void RvizPublisher::setCom(Eigen::Vector3f com){
+void RvizPublisher::setCom(Vector3 com){
   this->com = com;
 }
 
-void RvizPublisher::setCop(Eigen::Vector3f cop){
+void RvizPublisher::setCop(Vector3 cop){
   this->cop = cop;
 }
 
-void RvizPublisher::setIcp(Eigen::Vector3f icp){
+void RvizPublisher::setIcp(Vector3 icp){
   this->icp = icp;
 }
 
-void RvizPublisher::setFootstepR(std::vector<Eigen::Vector3f> footstepR){
+void RvizPublisher::setFootstepR(std::vector<Vector3> footstepR){
   this->footstepR = footstepR;
 }
 
-void RvizPublisher::setFootstepL(std::vector<Eigen::Vector3f> footstepL){
+void RvizPublisher::setFootstepL(std::vector<Vector3> footstepL){
   this->footstepL = footstepL;
 }
 

@@ -26,8 +26,8 @@ struct LinkData {
 };
 
 struct CaptData {
-  Eigen::Vector3f pos;
-  int             nstep;
+  Vector3 pos;
+  int     nstep;
 
   void operator=(const CaptData &data) {
     this->pos   = data.pos;
@@ -36,13 +36,13 @@ struct CaptData {
 };
 
 struct PlotData {
-  std::vector<LinkData>        link;
-  Eigen::Vector3f              copRef, comRef, icpRef;
-  Eigen::Vector3f              cop, com, icp;
-  Eigen::Vector3f              footRRef, footLRef;
-  Eigen::Vector3f              footR, footL;
-  std::vector<Eigen::Vector3f> footstepR, footstepL;
-  std::vector<CaptData>        gridMap;
+  std::vector<LinkData> link;
+  Vector3               copRef, comRef, icpRef;
+  Vector3               cop, com, icp;
+  Vector3               footRRef, footLRef;
+  Vector3               footR, footL;
+  std::vector<Vector3>  footstepR, footstepL;
+  std::vector<CaptData> gridMap;
 };
 
 class RvizPublisher
@@ -57,16 +57,16 @@ public:
   void setTimeStep(double timestep);
 
   void setPose(BodyPtr body);
-  void setComRef(Eigen::Vector3f comRef);
-  void setCopRef(Eigen::Vector3f copRef);
-  void setIcpRef(Eigen::Vector3f icpRef);
-  void setFootRRef(Eigen::Vector3f footRRef);
-  void setFootLRef(Eigen::Vector3f footLRef);
-  void setCom(Eigen::Vector3f com);
-  void setCop(Eigen::Vector3f cop);
-  void setIcp(Eigen::Vector3f icp);
-  void setFootstepR(std::vector<Eigen::Vector3f> footstepR);
-  void setFootstepL(std::vector<Eigen::Vector3f> footstepL);
+  void setComRef(Vector3 comRef);
+  void setCopRef(Vector3 copRef);
+  void setIcpRef(Vector3 icpRef);
+  void setFootRRef(Vector3 footRRef);
+  void setFootLRef(Vector3 footLRef);
+  void setCom(Vector3 com);
+  void setCop(Vector3 cop);
+  void setIcp(Vector3 icp);
+  void setFootstepR(std::vector<Vector3> footstepR);
+  void setFootstepL(std::vector<Vector3> footstepL);
   void setGridMap(std::vector<CaptData> gridMap);
 
   bool timeChanged(double time);
@@ -112,13 +112,13 @@ private:
   ros::Publisher pubFootRTraj, pubFootLTraj;
   ros::Publisher pubGridMap;
 
-  std::vector<LinkData>        link;
-  Eigen::Vector3f              copRef, comRef, icpRef;
-  Eigen::Vector3f              cop, com, icp;
-  Eigen::Vector3f              footRRef, footLRef;
-  Eigen::Vector3f              footR, footL;
-  std::vector<Eigen::Vector3f> footstepR, footstepL;
-  std::vector<CaptData>        gridMap;
+  std::vector<LinkData> link;
+  Vector3               copRef, comRef, icpRef;
+  Vector3               cop, com, icp;
+  Vector3               footRRef, footLRef;
+  Vector3               footR, footL;
+  std::vector<Vector3>  footstepR, footstepL;
+  std::vector<CaptData> gridMap;
 
   double dt, maxTime;
 

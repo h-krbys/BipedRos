@@ -43,20 +43,14 @@ class CaptWalk : public SimpleController
   planner::Output      output;
 
   // control
-  Vector3f              comRef, copRef, icpRef;
-  Vector3f              com, com_, comVel, cop, icp;
-  Vector3f              footRRef, footLRef;
-  Vector3f              footR, footL;
-  std::vector<Vector3f> footstepR, footstepL;
+  Vector3               comRef, copRef, icpRef;
+  Vector3               com, com_, comVel, cop, icp;
+  Vector3               footRRef, footLRef;
+  Vector3               footR, footL;
+  std::vector<Vector3>  footstepR, footstepL;
   std::vector<CaptData> gridMap;
 
 public:
-  void substitute(Vector3 from, Vector3f *to){
-    to->x() = from.x();
-    to->y() = from.y();
-    to->z() = from.z();
-  }
-
   void substitute(std::vector<Capt::CaptData> from, std::vector<CaptData> *to){
     to->clear();
     for(size_t i = 0; i < from.size(); i++) {
@@ -68,12 +62,12 @@ public:
   }
 
   void sync(){
-    substitute(ioBody->calcCenterOfMass(), &com);
+    com    = ioBody->calcCenterOfMass();
     comVel = ( com - com_ ) / dt;
     com_   = com;
     icp    = com + comVel / omega;
-    substitute(ioBody->link("rightFootSole")->position().translation(), &footR);
-    substitute(ioBody->link("leftFootSole")->position().translation(),  &footL);
+    footR  = ioBody->link("rightFootSole")->position().translation();
+    footL  = ioBody->link("leftFootSole")->position().translation();
   }
 
   virtual bool initialize(SimpleControllerIO* io) override

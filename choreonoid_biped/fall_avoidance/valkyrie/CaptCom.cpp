@@ -19,7 +19,7 @@ class ValkyrieCom : public SimpleController
   std::vector<double> qold;
 
   Vector3 comRef, pelvisRef, footRRef, footLRef;
-  Vector3 com, pelvis, footR, footL;
+  Vector3 com, torso, pelvis, footR, footL;
 
   Kinematics kinematics;
 
@@ -51,13 +51,19 @@ public:
 
     publisher.setTimeStep(dt);
 
+    torso  = ioBody->link("torso")->position().translation();
+    pelvis = ioBody->link("pelvis")->position().translation();
+    footR  = ioBody->link("rightFootSole")->position().translation();
+    footL  = ioBody->link("leftFootSole")->position().translation();
+
     return true;
   }
 
   virtual bool control() override
   {
-    Vector3 rpy(0, 0, 0);
+    Vector3 rpy(-t * 0.1, 0, 0);
     kinematics.setTorso(rpy);
+    rpy << t * 0.1, 0, 0;
 
     qref = kinematics.getJoints();
     for(int i = 0; i < ioBody->numJoints(); ++i) {
@@ -67,6 +73,18 @@ public:
       joint->dq_target() = ( qref[i] - q ) * pgain + ( 0.0 - dq ) * dgain;
       qold[i]            = q;
     }
+
+    if(t < 2) {
+      pelvis.z() -= 0.0001;
+    }else{
+      footL.y() -= 0.0001;
+    }
+    // kinematics.setTorso(torso);
+    kinematics.setPelvis(pelvis, rpy);
+    kinematics.setFootR(footR);
+    kinematics.setFootL(footL);
+    kinematics.inverse();
+    kinematics.forward();
 
     publisher.setPose(kinematics.getBody() );
     publisher.simulation(t);

@@ -43,6 +43,7 @@ struct PlotData {
     e_footR     = false; e_footL = false;
     e_footstepR = false; e_footstepL = false;
     e_gridMap   = false;
+    e_goal      = false;
   }
 
   std::vector<LinkData> link;
@@ -52,6 +53,7 @@ struct PlotData {
   Vector3               footR, footL;
   std::vector<Vector3>  footstepR, footstepL;
   std::vector<CaptData> gridMap;
+  Vector3               goal;
 
   // e_* means enabled_*
   bool e_copRef, e_comRef, e_icpRef;
@@ -60,6 +62,7 @@ struct PlotData {
   bool e_footR, e_footL;
   bool e_footstepR, e_footstepL;
   bool e_gridMap;
+  bool e_goal;
 };
 
 class RvizPublisher
@@ -85,6 +88,7 @@ public:
   void setFootstepR(std::vector<Vector3> footstepR);
   void setFootstepL(std::vector<Vector3> footstepL);
   void setGridMap(std::vector<CaptData> gridMap);
+  void setGoal(Vector3 goal);
 
   bool timeChanged(double time);
   void simulation(double time);
@@ -104,6 +108,7 @@ public:
   void publishFootstepR();
   void publishFootstepL();
   void publishGridMap();
+  void publishGoal();
 
   void publishComRefTraj(double time);
   void publishCopRefTraj(double time);
@@ -128,6 +133,7 @@ private:
   ros::Publisher pubFootRRefTraj, pubFootLRefTraj;
   ros::Publisher pubFootRTraj, pubFootLTraj;
   ros::Publisher pubGridMap;
+  ros::Publisher pubGoal;
 
   std::vector<LinkData> link;
   Vector3               copRef, comRef, icpRef;
@@ -136,6 +142,7 @@ private:
   Vector3               footR, footL;
   std::vector<Vector3>  footstepR, footstepL;
   std::vector<CaptData> gridMap;
+  Vector3               goal;
 
   bool e_copRef, e_comRef, e_icpRef;
   bool e_cop, e_com, e_icp;
@@ -143,6 +150,7 @@ private:
   bool e_footR, e_footL;
   bool e_footstepR, e_footstepL;
   bool e_gridMap;
+  bool e_goal;
 
   double dt, maxTime;
 

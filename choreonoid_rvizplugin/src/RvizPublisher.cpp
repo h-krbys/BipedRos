@@ -23,6 +23,7 @@ RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 4.0){
   pubFootstepR    = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_r", 1);
   pubFootstepL    = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_l", 1);
   pubGridMap      = nh->advertise<visualization_msgs::Marker>("/marker/capture_region", 1);
+  pubGoal         = nh->advertise<visualization_msgs::Marker>("/marker/goal", 1);
   pubComRefTraj   = nh->advertise<visualization_msgs::Marker>("/marker/com_ref_traj", 1);
   pubCopRefTraj   = nh->advertise<visualization_msgs::Marker>("/marker/cop_ref_traj", 1);
   pubIcpRefTraj   = nh->advertise<visualization_msgs::Marker>("/marker/icp_ref_traj", 1);
@@ -43,9 +44,9 @@ RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 4.0){
 
   // initialize
   dt           = 0.001;
+  maxTime      = 0.0;
   isSimulation = true;
   isPlayback   = false;
-  maxTime      = -dt;
 }
 
 RvizPublisher::~RvizPublisher(){
@@ -86,6 +87,7 @@ void RvizPublisher::simulation(double time){
   data_.e_footstepR = e_footstepR;
   data_.e_footstepL = e_footstepL;
   data_.e_gridMap   = e_gridMap;
+  data_.e_goal      = e_goal;
 
   data_.link      = link;
   data_.copRef    = copRef;
@@ -101,6 +103,7 @@ void RvizPublisher::simulation(double time){
   data_.footstepR = footstepR;
   data_.footstepL = footstepL;
   data_.gridMap   = gridMap;
+  data_.goal      = goal;
   data.push_back(data_);
 
   publishAll(time);
@@ -124,6 +127,7 @@ void RvizPublisher::playback(double time){
     e_footstepR = data[num_timestep].e_footstepR;
     e_footstepL = data[num_timestep].e_footstepL;
     e_gridMap   = data[num_timestep].e_gridMap;
+    e_goal      = data[num_timestep].e_goal;
 
     link      = data[num_timestep].link;
     copRef    = data[num_timestep].copRef;
@@ -139,6 +143,8 @@ void RvizPublisher::playback(double time){
     footstepR = data[num_timestep].footstepR;
     footstepL = data[num_timestep].footstepL;
     gridMap   = data[num_timestep].gridMap;
+    goal      = data[num_timestep].goal;
+
     publishAll(time);
   }
 }
@@ -156,6 +162,7 @@ void RvizPublisher::publishAll(double time){
   publishFootstepR();
   publishFootstepL();
   publishGridMap();
+  publishGoal();
   publishComRefTraj(time);
   publishCopRefTraj(time);
   publishIcpRefTraj(time);
@@ -227,12 +234,12 @@ void RvizPublisher::setCom(Vector3 com){
 }
 
 void RvizPublisher::setCop(Vector3 cop){
-  e_com     = true;
+  e_cop     = true;
   this->cop = cop;
 }
 
 void RvizPublisher::setIcp(Vector3 icp){
-  e_com     = true;
+  e_icp     = true;
   this->icp = icp;
 }
 
@@ -250,6 +257,11 @@ void RvizPublisher::setGridMap(std::vector<CaptData> gridMap){
   e_gridMap = true;
   this->gridMap.clear();
   this->gridMap = gridMap;
+}
+
+void RvizPublisher::setGoal(Vector3 goal){
+  e_goal     = true;
+  this->goal = goal;
 }
 
 void RvizPublisher::publishPose(){
@@ -716,6 +728,50 @@ void RvizPublisher::publishGridMap(){
     }
   }
   pubGridMap.publish(marker);
+}
+
+void RvizPublisher::publishGoal(){
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = "world";
+  marker.header.stamp    = ros::Time::now();
+  marker.ns              = "markers";
+  marker.id              = 0;
+
+  marker.type = visualization_msgs::Marker::ARROW;
+  if(e_goal == true) {
+    marker.action = visualization_msgs::Marker::ADD;
+  }else{
+    marker.action = visualization_msgs::Marker::DELETE;
+  }
+
+  // marker.pose.position.x    = goal.x();
+  // marker.pose.position.y    = goal.y();
+  // marker.pose.position.z    = goal.z();
+  // marker.pose.orientation.x = 0.0;
+  // marker.pose.orientation.y = 0.0;
+  // marker.pose.orientation.z = 0.0;
+  // marker.pose.orientation.w = 1.0;
+
+  marker.scale.x = 2 * lineWidth;
+  marker.scale.y = 2 * lineWidth * 2;
+  marker.scale.z = 2 * lineWidth * 2;
+
+  marker.color.r = 25.0 / 255;
+  marker.color.g = 255.0 / 255;
+  marker.color.b = 240.0 / 255;
+  marker.color.a = 0.8;
+
+  marker.points.resize(2);
+  marker.points[0].x = goal.x();
+  marker.points[0].y = goal.y();
+  marker.points[0].z = goal.z();
+  marker.points[1].x = goal.x() + 0.25;
+  marker.points[1].y = goal.y();
+  marker.points[1].z = goal.z();
+
+  marker.lifetime = ros::Duration();
+
+  pubGoal.publish(marker);
 }
 
 void RvizPublisher::publishComRefTraj(double time){

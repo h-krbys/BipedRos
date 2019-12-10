@@ -50,6 +50,7 @@ class CaptWalk : public SimpleController
   Vector3               footR, footL;
   std::vector<Vector3>  footstepR, footstepL;
   std::vector<CaptData> gridMap;
+  Vector3               goal;
 
   ComTrajectory *traj;
 
@@ -65,12 +66,13 @@ public:
   }
 
   void sync(){
-    com    = ioBody->calcCenterOfMass();
-    comVel = ( com - com_ ) / dt;
-    com_   = com;
-    icp    = com + comVel / omega;
-    footR  = ioBody->link("rightFootSole")->position().translation();
-    footL  = ioBody->link("leftFootSole")->position().translation();
+    com     = ioBody->calcCenterOfMass();
+    comVel  = ( com - com_ ) / dt;
+    com_    = com;
+    icp     = com + comVel / omega;
+    icp.z() = 0.0;
+    footR   = ioBody->link("rightFootSole")->position().translation();
+    footL   = ioBody->link("leftFootSole")->position().translation();
   }
 
   virtual bool initialize(SimpleControllerIO* io) override
@@ -139,7 +141,7 @@ public:
     case INIT:
       posLLeg.translation().z() += 0.1 * dt;
       posRLeg.translation().z() += 0.1 * dt;
-      if( elapsed > 2 ) {
+      if( com.z() <= 1.0 ) {
         phase   = WAIT;
         elapsed = 0.0;
       }
@@ -157,6 +159,8 @@ public:
         input.goal    = Capt::vec3_t(1.0, 0.0, 0.0);
         input.stance  = 0.4;
 
+        goal << 1.0, 0.0, 0.0;
+
         planner->set(input);
 
         footstepR = planner->getFootstepR();
@@ -165,6 +169,11 @@ public:
         substitute(planner->getCaptureRegion(), &gridMap);
 
         phase = SSP_R;
+
+        publisher.setComRef(com);
+        publisher.setIcpRef(icp);
+        publisher.setFootRRef(footR);
+        publisher.setFootLRef(footL);
       }
       break;
     case SSP_R:
@@ -208,6 +217,7 @@ public:
       publisher.setFootstepR(footstepR);
       publisher.setFootstepL(footstepL);
       publisher.setGridMap(gridMap);
+      publisher.setGoal(goal);
       break;
     case SSP_L:
       output = planner->get(elapsed);
@@ -250,6 +260,7 @@ public:
       publisher.setFootstepR(footstepR);
       publisher.setFootstepL(footstepL);
       publisher.setGridMap(gridMap);
+      publisher.setGoal(goal);
       break;
     default:
       break;

@@ -451,7 +451,7 @@ Visualization Manager:
       Marker Topic: /marker/com_ref
       Name: ComRef
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -459,7 +459,7 @@ Visualization Manager:
       Marker Topic: /marker/cop_ref
       Name: CopRef
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -467,7 +467,7 @@ Visualization Manager:
       Marker Topic: /marker/icp_ref
       Name: IcpRef
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -475,7 +475,7 @@ Visualization Manager:
       Marker Topic: /marker/foot_r_ref
       Name: FootRRef
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -483,7 +483,7 @@ Visualization Manager:
       Marker Topic: /marker/foot_l_ref
       Name: FootLRef
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -491,7 +491,7 @@ Visualization Manager:
       Marker Topic: marker/com
       Name: Com
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -499,7 +499,7 @@ Visualization Manager:
       Marker Topic: /marker/cop
       Name: Cop
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -507,7 +507,7 @@ Visualization Manager:
       Marker Topic: /marker/icp
       Name: Icp
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -515,7 +515,7 @@ Visualization Manager:
       Marker Topic: /marker/footstep_r
       Name: FootstepR
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -523,7 +523,7 @@ Visualization Manager:
       Marker Topic: /marker/footstep_l
       Name: FootstepL
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -531,7 +531,15 @@ Visualization Manager:
       Marker Topic: /marker/capture_region
       Name: CaptureRegion
       Namespaces:
-        markers: true
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /marker/goal
+      Name: Goal
+      Namespaces:
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -539,7 +547,7 @@ Visualization Manager:
       Marker Topic: /marker/com_ref_traj
       Name: ComRefTraj
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -547,7 +555,7 @@ Visualization Manager:
       Marker Topic: /marker/cop_ref_traj
       Name: CopRefTraj
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -555,7 +563,7 @@ Visualization Manager:
       Marker Topic: /marker/icp_ref_traj
       Name: IcpRefTraj
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -563,7 +571,7 @@ Visualization Manager:
       Marker Topic: /marker/foot_r_ref_traj
       Name: FootRRefTraj
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -571,7 +579,7 @@ Visualization Manager:
       Marker Topic: /marker/foot_l_ref_traj
       Name: FootLRefTraj
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -579,7 +587,7 @@ Visualization Manager:
       Marker Topic: /marker/com_traj
       Name: ComTraj
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -587,7 +595,7 @@ Visualization Manager:
       Marker Topic: /marker/cop_traj
       Name: CopTraj
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -595,7 +603,7 @@ Visualization Manager:
       Marker Topic: /marker/icp_traj
       Name: IcpTraj
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -603,7 +611,7 @@ Visualization Manager:
       Marker Topic: /marker/foot_r_traj
       Name: FootRTraj
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -611,7 +619,7 @@ Visualization Manager:
       Marker Topic: /marker/foot_l_traj
       Name: FootLTraj
       Namespaces:
-        markers: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true

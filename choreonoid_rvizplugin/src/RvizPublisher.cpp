@@ -45,6 +45,7 @@ RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 4.0){
   dt           = 0.001;
   isSimulation = true;
   isPlayback   = false;
+  maxTime      = -dt;
 }
 
 RvizPublisher::~RvizPublisher(){
@@ -72,7 +73,20 @@ bool RvizPublisher::timeChanged(double time){
 }
 
 void RvizPublisher::simulation(double time){
-  PlotData data_;
+  data_.e_copRef    = e_copRef;
+  data_.e_comRef    = e_comRef;
+  data_.e_icpRef    = e_icpRef;
+  data_.e_cop       = e_cop;
+  data_.e_com       = e_com;
+  data_.e_icp       = e_icp;
+  data_.e_footRRef  = e_footRRef;
+  data_.e_footLRef  = e_footLRef;
+  data_.e_footR     = e_footR;
+  data_.e_footL     = e_footL;
+  data_.e_footstepR = e_footstepR;
+  data_.e_footstepL = e_footstepL;
+  data_.e_gridMap   = e_gridMap;
+
   data_.link      = link;
   data_.copRef    = copRef;
   data_.comRef    = comRef;
@@ -97,6 +111,20 @@ void RvizPublisher::simulation(double time){
 void RvizPublisher::playback(double time){
   if(time <= maxTime) {
     const int num_timestep = time / dt;
+    e_copRef    = data[num_timestep].e_copRef;
+    e_comRef    = data[num_timestep].e_comRef;
+    e_icpRef    = data[num_timestep].e_icpRef;
+    e_cop       = data[num_timestep].e_cop;
+    e_com       = data[num_timestep].e_com;
+    e_icp       = data[num_timestep].e_icp;
+    e_footRRef  = data[num_timestep].e_footRRef;
+    e_footLRef  = data[num_timestep].e_footLRef;
+    e_footR     = data[num_timestep].e_footR;
+    e_footL     = data[num_timestep].e_footL;
+    e_footstepR = data[num_timestep].e_footstepR;
+    e_footstepL = data[num_timestep].e_footstepL;
+    e_gridMap   = data[num_timestep].e_gridMap;
+
     link      = data[num_timestep].link;
     copRef    = data[num_timestep].copRef;
     comRef    = data[num_timestep].comRef;
@@ -168,47 +196,58 @@ void RvizPublisher::setPose(cnoid::BodyPtr body){
   footL.z() = body->link("leftFootSole")->translation().z();
 }
 
-void RvizPublisher::setComRef(Vector3 comRef){
-  this->comRef = comRef;
-}
-
 void RvizPublisher::setCopRef(Vector3 copRef){
+  e_copRef     = true;
   this->copRef = copRef;
 }
 
+void RvizPublisher::setComRef(Vector3 comRef){
+  e_comRef     = true;
+  this->comRef = comRef;
+}
+
 void RvizPublisher::setIcpRef(Vector3 icpRef){
+  e_icpRef     = true;
   this->icpRef = icpRef;
 }
 
 void RvizPublisher::setFootRRef(Vector3 footRRef){
+  e_footRRef     = true;
   this->footRRef = footRRef;
 }
 
 void RvizPublisher::setFootLRef(Vector3 footLRef){
+  e_footLRef     = true;
   this->footLRef = footLRef;
 }
 
 void RvizPublisher::setCom(Vector3 com){
+  e_com     = true;
   this->com = com;
 }
 
 void RvizPublisher::setCop(Vector3 cop){
+  e_com     = true;
   this->cop = cop;
 }
 
 void RvizPublisher::setIcp(Vector3 icp){
+  e_com     = true;
   this->icp = icp;
 }
 
 void RvizPublisher::setFootstepR(std::vector<Vector3> footstepR){
+  e_footstepR     = true;
   this->footstepR = footstepR;
 }
 
 void RvizPublisher::setFootstepL(std::vector<Vector3> footstepL){
+  e_footstepL     = true;
   this->footstepL = footstepL;
 }
 
 void RvizPublisher::setGridMap(std::vector<CaptData> gridMap){
+  e_gridMap = true;
   this->gridMap.clear();
   this->gridMap = gridMap;
 }
@@ -238,8 +277,12 @@ void RvizPublisher::publishComRef(){
   marker.ns              = "markers";
   marker.id              = 0;
 
-  marker.type   = visualization_msgs::Marker::SPHERE;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::Marker::SPHERE;
+  if(e_comRef == true) {
+    marker.action = visualization_msgs::Marker::ADD;
+  }else{
+    marker.action = visualization_msgs::Marker::DELETE;
+  }
 
   marker.pose.position.x    = comRef.x();
   marker.pose.position.y    = comRef.y();
@@ -270,8 +313,12 @@ void RvizPublisher::publishCopRef(){
   marker.ns              = "markers";
   marker.id              = 0;
 
-  marker.type   = visualization_msgs::Marker::SPHERE;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::Marker::SPHERE;
+  if(e_copRef == true) {
+    marker.action = visualization_msgs::Marker::ADD;
+  }else{
+    marker.action = visualization_msgs::Marker::DELETE;
+  }
 
   marker.pose.position.x    = copRef.x();
   marker.pose.position.y    = copRef.y();
@@ -302,8 +349,12 @@ void RvizPublisher::publishIcpRef(){
   marker.ns              = "markers";
   marker.id              = 0;
 
-  marker.type   = visualization_msgs::Marker::SPHERE;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::Marker::SPHERE;
+  if(e_icpRef == true) {
+    marker.action = visualization_msgs::Marker::ADD;
+  }else{
+    marker.action = visualization_msgs::Marker::DELETE;
+  }
 
   marker.pose.position.x    = icpRef.x();
   marker.pose.position.y    = icpRef.y();
@@ -336,8 +387,12 @@ void RvizPublisher::publishFootRRef(){
   marker.id              = 0;
   marker.lifetime        = ros::Duration();
 
-  marker.type   = visualization_msgs::Marker::MESH_RESOURCE;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+  if(e_footRRef == true) {
+    marker.action = visualization_msgs::Marker::ADD;
+  }else{
+    marker.action = visualization_msgs::Marker::DELETE;
+  }
 
   marker.pose.position.x    = footRRef.x();
   marker.pose.position.y    = footRRef.y();
@@ -369,8 +424,12 @@ void RvizPublisher::publishFootLRef(){
   marker.id              = 0;
   marker.lifetime        = ros::Duration();
 
-  marker.type   = visualization_msgs::Marker::MESH_RESOURCE;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+  if(e_footLRef == true) {
+    marker.action = visualization_msgs::Marker::ADD;
+  }else{
+    marker.action = visualization_msgs::Marker::DELETE;
+  }
 
   marker.pose.position.x    = footLRef.x();
   marker.pose.position.y    = footLRef.y();
@@ -400,8 +459,12 @@ void RvizPublisher::publishCom(){
   marker.ns              = "markers";
   marker.id              = 0;
 
-  marker.type   = visualization_msgs::Marker::SPHERE;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::Marker::SPHERE;
+  if(e_com == true) {
+    marker.action = visualization_msgs::Marker::ADD;
+  }else{
+    marker.action = visualization_msgs::Marker::DELETE;
+  }
 
   marker.pose.position.x    = com.x();
   marker.pose.position.y    = com.y();
@@ -432,8 +495,12 @@ void RvizPublisher::publishCop(){
   marker.ns              = "markers";
   marker.id              = 0;
 
-  marker.type   = visualization_msgs::Marker::SPHERE;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::Marker::SPHERE;
+  if(e_cop == true) {
+    marker.action = visualization_msgs::Marker::ADD;
+  }else{
+    marker.action = visualization_msgs::Marker::DELETE;
+  }
 
   marker.pose.position.x    = cop.x();
   marker.pose.position.y    = cop.y();
@@ -464,8 +531,12 @@ void RvizPublisher::publishIcp(){
   marker.ns              = "markers";
   marker.id              = 0;
 
-  marker.type   = visualization_msgs::Marker::SPHERE;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::Marker::SPHERE;
+  if(e_icp == true) {
+    marker.action = visualization_msgs::Marker::ADD;
+  }else{
+    marker.action = visualization_msgs::Marker::DELETE;
+  }
 
   marker.pose.position.x    = icp.x();
   marker.pose.position.y    = icp.y();
@@ -503,7 +574,11 @@ void RvizPublisher::publishFootstepR(){
 
     marker_array.markers[i].type = visualization_msgs::Marker::MESH_RESOURCE;
 
-    marker_array.markers[i].action = visualization_msgs::Marker::ADD;
+    if(e_footstepR == true) {
+      marker_array.markers[i].action = visualization_msgs::Marker::ADD;
+    }else{
+      marker_array.markers[i].action = visualization_msgs::Marker::DELETEALL;
+    }
 
     marker_array.markers[i].pose.position.x    = footstepR[i].x();
     marker_array.markers[i].pose.position.y    = footstepR[i].y();
@@ -523,6 +598,12 @@ void RvizPublisher::publishFootstepR(){
     marker_array.markers[i].color.b       = 0.0;
     marker_array.markers[i].color.a       = 0.5;
   }
+
+  if(e_footstepR == false) {
+    marker_array.markers.resize(1);
+    marker_array.markers[0].action = visualization_msgs::Marker::DELETEALL;
+  }
+
   pubFootstepR.publish(marker_array);
 }
 
@@ -540,7 +621,11 @@ void RvizPublisher::publishFootstepL(){
 
     marker_array.markers[i].type = visualization_msgs::Marker::MESH_RESOURCE;
 
-    marker_array.markers[i].action = visualization_msgs::Marker::ADD;
+    if(e_footstepL == true) {
+      marker_array.markers[i].action = visualization_msgs::Marker::ADD;
+    }else{
+      marker_array.markers[i].action = visualization_msgs::Marker::DELETE;
+    }
 
     marker_array.markers[i].pose.position.x    = footstepL[i].x();
     marker_array.markers[i].pose.position.y    = footstepL[i].y();
@@ -560,6 +645,12 @@ void RvizPublisher::publishFootstepL(){
     marker_array.markers[i].color.b       = 0.0;
     marker_array.markers[i].color.a       = 0.5;
   }
+
+  if(e_footstepR == false) {
+    marker_array.markers.resize(1);
+    marker_array.markers[0].action = visualization_msgs::Marker::DELETEALL;
+  }
+
   pubFootstepL.publish(marker_array);
 }
 
@@ -573,8 +664,12 @@ void RvizPublisher::publishGridMap(){
   marker.id              = 0;
   marker.lifetime        = ros::Duration();
 
-  marker.type   = visualization_msgs::Marker::CUBE_LIST;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::Marker::CUBE_LIST;
+  if(e_gridMap == true) {
+    marker.action = visualization_msgs::Marker::ADD;
+  }else{
+    marker.action = visualization_msgs::Marker::DELETE;
+  }
 
   marker.scale.x = 0.05;
   marker.scale.y = 0.05;
@@ -644,11 +739,15 @@ void RvizPublisher::publishComRefTraj(double time){
   marker.color.b = 0.0;
   marker.color.a = 0.5;
 
-  marker.points.resize(num_points);
+  // marker.points.resize(num_points);
   for (int i = 0; i < num_points; i++) {
-    marker.points[i].x = data[i].comRef.x();
-    marker.points[i].y = data[i].comRef.y();
-    marker.points[i].z = data[i].comRef.z();
+    if(data[i].e_comRef) {
+      geometry_msgs::Point point;
+      point.x = data[i].comRef.x();
+      point.y = data[i].comRef.y();
+      point.z = data[i].comRef.z();
+      marker.points.push_back(point);
+    }
   }
 
   marker.lifetime = ros::Duration();
@@ -677,11 +776,15 @@ void RvizPublisher::publishCopRefTraj(double time){
   marker.color.b = 0.0;
   marker.color.a = 0.5;
 
-  marker.points.resize(num_points);
+  // marker.points.resize(num_points);
   for (int i = 0; i < num_points; i++) {
-    marker.points[i].x = data[i].copRef.x();
-    marker.points[i].y = data[i].copRef.y();
-    marker.points[i].z = data[i].copRef.z();
+    if(data[i].e_copRef) {
+      geometry_msgs::Point point;
+      point.x = data[i].copRef.x();
+      point.y = data[i].copRef.y();
+      point.z = data[i].copRef.z();
+      marker.points.push_back(point);
+    }
   }
 
   marker.lifetime = ros::Duration();
@@ -710,11 +813,15 @@ void RvizPublisher::publishIcpRefTraj(double time){
   marker.color.b = 1.0;
   marker.color.a = 0.5;
 
-  marker.points.resize(num_points);
+  // marker.points.resize(num_points);
   for (int i = 0; i < num_points; i++) {
-    marker.points[i].x = data[i].icpRef.x();
-    marker.points[i].y = data[i].icpRef.y();
-    marker.points[i].z = data[i].icpRef.z();
+    if(data[i].e_icpRef) {
+      geometry_msgs::Point point;
+      point.x = data[i].icpRef.x();
+      point.y = data[i].icpRef.y();
+      point.z = data[i].icpRef.z();
+      marker.points.push_back(point);
+    }
   }
 
   marker.lifetime = ros::Duration();
@@ -743,11 +850,15 @@ void RvizPublisher::publishFootRRefTraj(double time){
   marker.color.b = 1.0;
   marker.color.a = 0.5;
 
-  marker.points.resize(num_points);
+  // marker.points.resize(num_points);
   for (int i = 0; i < num_points; i++) {
-    marker.points[i].x = data[i].footRRef.x();
-    marker.points[i].y = data[i].footRRef.y();
-    marker.points[i].z = data[i].footRRef.z();
+    if(data[i].e_footRRef) {
+      geometry_msgs::Point point;
+      point.x = data[i].footRRef.x();
+      point.y = data[i].footRRef.y();
+      point.z = data[i].footRRef.z();
+      marker.points.push_back(point);
+    }
   }
 
   marker.lifetime = ros::Duration();
@@ -776,11 +887,15 @@ void RvizPublisher::publishFootLRefTraj(double time){
   marker.color.b = 1.0;
   marker.color.a = 0.5;
 
-  marker.points.resize(num_points);
+  // marker.points.resize(num_points);
   for (int i = 0; i < num_points; i++) {
-    marker.points[i].x = data[i].footLRef.x();
-    marker.points[i].y = data[i].footLRef.y();
-    marker.points[i].z = data[i].footLRef.z();
+    if(data[i].e_footLRef) {
+      geometry_msgs::Point point;
+      point.x = data[i].footLRef.x();
+      point.y = data[i].footLRef.y();
+      point.z = data[i].footLRef.z();
+      marker.points.push_back(point);
+    }
   }
 
   marker.lifetime = ros::Duration();
@@ -809,11 +924,15 @@ void RvizPublisher::publishComTraj(double time){
   marker.color.b = 0.0;
   marker.color.a = 1.0;
 
-  marker.points.resize(num_points);
+  // marker.points.resize(num_points);
   for (int i = 0; i < num_points; i++) {
-    marker.points[i].x = data[i].com.x();
-    marker.points[i].y = data[i].com.y();
-    marker.points[i].z = data[i].com.z();
+    if(data[i].e_com) {
+      geometry_msgs::Point point;
+      point.x = data[i].com.x();
+      point.y = data[i].com.y();
+      point.z = data[i].com.z();
+      marker.points.push_back(point);
+    }
   }
 
   marker.lifetime = ros::Duration();
@@ -842,11 +961,15 @@ void RvizPublisher::publishCopTraj(double time){
   marker.color.b = 0.0;
   marker.color.a = 1.0;
 
-  marker.points.resize(num_points);
+  // marker.points.resize(num_points);
   for (int i = 0; i < num_points; i++) {
-    marker.points[i].x = data[i].cop.x();
-    marker.points[i].y = data[i].cop.y();
-    marker.points[i].z = data[i].cop.z();
+    if(data[i].e_cop) {
+      geometry_msgs::Point point;
+      point.x = data[i].cop.x();
+      point.y = data[i].cop.y();
+      point.z = data[i].cop.z();
+      marker.points.push_back(point);
+    }
   }
 
   marker.lifetime = ros::Duration();
@@ -875,11 +998,15 @@ void RvizPublisher::publishIcpTraj(double time){
   marker.color.b = 1.0;
   marker.color.a = 1.0;
 
-  marker.points.resize(num_points);
+  // marker.points.resize(num_points);
   for (int i = 0; i < num_points; i++) {
-    marker.points[i].x = data[i].icp.x();
-    marker.points[i].y = data[i].icp.y();
-    marker.points[i].z = data[i].icp.z();
+    if(data[i].e_icp) {
+      geometry_msgs::Point point;
+      point.x = data[i].icp.x();
+      point.y = data[i].icp.y();
+      point.z = data[i].icp.z();
+      marker.points.push_back(point);
+    }
   }
 
   marker.lifetime = ros::Duration();
@@ -908,11 +1035,15 @@ void RvizPublisher::publishFootRTraj(double time){
   marker.color.b = 1.0;
   marker.color.a = 1.0;
 
-  marker.points.resize(num_points);
+  // marker.points.resize(num_points);
   for (int i = 0; i < num_points; i++) {
-    marker.points[i].x = data[i].footR.x();
-    marker.points[i].y = data[i].footR.y();
-    marker.points[i].z = data[i].footR.z();
+    if(data[i].e_footR) {
+      geometry_msgs::Point point;
+      point.x = data[i].footR.x();
+      point.y = data[i].footR.y();
+      point.z = data[i].footR.z();
+      marker.points.push_back(point);
+    }
   }
 
   marker.lifetime = ros::Duration();
@@ -941,11 +1072,15 @@ void RvizPublisher::publishFootLTraj(double time){
   marker.color.b = 1.0;
   marker.color.a = 1.0;
 
-  marker.points.resize(num_points);
+  // marker.points.resize(num_points);
   for (int i = 0; i < num_points; i++) {
-    marker.points[i].x = data[i].footL.x();
-    marker.points[i].y = data[i].footL.y();
-    marker.points[i].z = data[i].footL.z();
+    if(data[i].e_footL) {
+      geometry_msgs::Point point;
+      point.x = data[i].footL.x();
+      point.y = data[i].footL.y();
+      point.z = data[i].footL.z();
+      marker.points.push_back(point);
+    }
   }
 
   marker.lifetime = ros::Duration();

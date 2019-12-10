@@ -36,6 +36,15 @@ struct CaptData {
 };
 
 struct PlotData {
+  PlotData(){
+    e_copRef    = false; e_comRef = false; e_icpRef = false;
+    e_cop       = false; e_com = false; e_icp = false;
+    e_footRRef  = false; e_footLRef = false;
+    e_footR     = false; e_footL = false;
+    e_footstepR = false; e_footstepL = false;
+    e_gridMap   = false;
+  }
+
   std::vector<LinkData> link;
   Vector3               copRef, comRef, icpRef;
   Vector3               cop, com, icp;
@@ -43,6 +52,14 @@ struct PlotData {
   Vector3               footR, footL;
   std::vector<Vector3>  footstepR, footstepL;
   std::vector<CaptData> gridMap;
+
+  // e_* means enabled_*
+  bool e_copRef, e_comRef, e_icpRef;
+  bool e_cop, e_com, e_icp;
+  bool e_footRRef, e_footLRef;
+  bool e_footR, e_footL;
+  bool e_footstepR, e_footstepL;
+  bool e_gridMap;
 };
 
 class RvizPublisher
@@ -57,8 +74,8 @@ public:
   void setTimeStep(double timestep);
 
   void setPose(BodyPtr body);
-  void setComRef(Vector3 comRef);
   void setCopRef(Vector3 copRef);
+  void setComRef(Vector3 comRef);
   void setIcpRef(Vector3 icpRef);
   void setFootRRef(Vector3 footRRef);
   void setFootLRef(Vector3 footLRef);
@@ -76,8 +93,8 @@ public:
   void publishAll(double time);
 
   void publishPose();
-  void publishComRef();
   void publishCopRef();
+  void publishComRef();
   void publishIcpRef();
   void publishFootRRef();
   void publishFootLRef();
@@ -120,8 +137,16 @@ private:
   std::vector<Vector3>  footstepR, footstepL;
   std::vector<CaptData> gridMap;
 
+  bool e_copRef, e_comRef, e_icpRef;
+  bool e_cop, e_com, e_icp;
+  bool e_footRRef, e_footLRef;
+  bool e_footR, e_footL;
+  bool e_footstepR, e_footstepL;
+  bool e_gridMap;
+
   double dt, maxTime;
 
+  PlotData              data_; // temporary
   std::vector<PlotData> data;
 
   const double markerSize;

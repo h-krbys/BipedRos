@@ -1,3 +1,4 @@
+#include <cnoid/BipedControl>
 #include <cnoid/SimpleController>
 #include <cnoid/JointPath>
 #include "RvizPublisher.h"
@@ -49,6 +50,8 @@ class CaptWalk : public SimpleController
   Vector3               footR, footL;
   std::vector<Vector3>  footstepR, footstepL;
   std::vector<CaptData> gridMap;
+
+  ComTrajectory *traj;
 
 public:
   void substitute(std::vector<Capt::CaptData> from, std::vector<CaptData> *to){
@@ -118,6 +121,7 @@ public:
     t       = 0.0;
     elapsed = 0.0;
 
+    traj = new ComTrajectory(model, config);
     publisher.setTimeStep(dt);
 
     return true;
@@ -143,6 +147,7 @@ public:
     case WAIT:
       if( elapsed > 1 ) {
         elapsed = 0.0;
+        comRef  = com;
 
         input.elapsed = elapsed;
         input.suf     = Capt::Foot::FOOT_R;
@@ -169,6 +174,9 @@ public:
         footLRef = output.lfoot;
         icpRef   = output.icp;
         copRef   = output.cop;
+
+        traj->set(icpRef, comRef);
+        comRef = traj->getComDes();
       }else{
         elapsed = 0.0;
 
@@ -189,6 +197,17 @@ public:
 
         phase = SSP_L;
       }
+      publisher.setComRef(comRef);
+      publisher.setCopRef(copRef);
+      publisher.setIcpRef(icpRef);
+      publisher.setFootRRef(footRRef);
+      publisher.setFootLRef(footLRef);
+      // publisher.setCom(com);
+      // publisher.setCop(cop);
+      // publisher.setIcp(icp);
+      publisher.setFootstepR(footstepR);
+      publisher.setFootstepL(footstepL);
+      publisher.setGridMap(gridMap);
       break;
     case SSP_L:
       output = planner->get(elapsed);
@@ -197,6 +216,9 @@ public:
         footLRef = output.lfoot;
         icpRef   = output.icp;
         copRef   = output.cop;
+
+        traj->set(icpRef, comRef);
+        comRef = traj->getComDes();
       }else{
         elapsed = 0.0;
 
@@ -217,6 +239,17 @@ public:
 
         phase = SSP_R;
       }
+      publisher.setComRef(comRef);
+      publisher.setCopRef(copRef);
+      publisher.setIcpRef(icpRef);
+      publisher.setFootRRef(footRRef);
+      publisher.setFootLRef(footLRef);
+      // publisher.setCom(com);
+      // publisher.setCop(cop);
+      // publisher.setIcp(icp);
+      publisher.setFootstepR(footstepR);
+      publisher.setFootstepL(footstepL);
+      publisher.setGridMap(gridMap);
       break;
     default:
       break;
@@ -235,18 +268,25 @@ public:
     }
 
     publisher.setPose(ioBody);
-    // publisher.setComRef(comRef);
-    publisher.setCopRef(copRef);
-    publisher.setIcpRef(icpRef);
-    publisher.setFootRRef(footRRef);
-    publisher.setFootLRef(footLRef);
-    // publisher.setCom(com);
-    // publisher.setCop(cop);
-    // publisher.setIcp(icp);
-    publisher.setFootstepR(footstepR);
-    publisher.setFootstepL(footstepL);
-    publisher.setGridMap(gridMap);
-    // publisher.setFootLRef(footLRef);
+    // switch( phase ) {
+    // case INIT:
+    // case WAIT:
+    //   break;
+    // case SSP_R:
+    // case SSP_L:
+    //   publisher.setComRef(comRef);
+    //   publisher.setCopRef(copRef);
+    //   publisher.setIcpRef(icpRef);
+    //   publisher.setFootRRef(footRRef);
+    //   publisher.setFootLRef(footLRef);
+    //   // publisher.setCom(com);
+    //   // publisher.setCop(cop);
+    //   // publisher.setIcp(icp);
+    //   publisher.setFootstepR(footstepR);
+    //   publisher.setFootstepL(footstepL);
+    //   publisher.setGridMap(gridMap);
+    //   break;
+    // }
     publisher.simulation(t);
 
     t       += dt;

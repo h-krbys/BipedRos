@@ -2,11 +2,20 @@ cmake_minimum_required(VERSION 3.0)
 project(capt_planner)
 
 set(CAPT_DIR "" CACHE PATH "root directory of Capturability")
+if(EXISTS ${CAPT_DIR})
+  foreach(directory ${CAPT_DIR})
+    file(GLOB_RECURSE files ${CAPT_DIR}/src/*.cpp ${CAPT_DIR}/plot/src/*.cpp)
+    list(APPEND CAPT_SOURCES ${files})
+  endforeach()
+  include_directories(${CAPT_DIR}/include)
+  include_directories(${CAPT_DIR}/plot/include)
+endif()
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   geometry_msgs
+  nav_msgs
   tf
   choreonoid
   choreonoid_rvizplugin
@@ -59,3 +68,4 @@ function(add_controller)
 endfunction()
 
 add_controller(GlobalPlanner src/GlobalPlanner.cpp)
+add_controller(LocalPlanner  src/LocalPlanner.cpp)

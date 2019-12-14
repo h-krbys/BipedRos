@@ -4,6 +4,6 @@
   <node name="GlobalPlanner" pkg="capt_planner" type="GlobalPlanner" output="screen"/>
 
   <!-- Local Planner -->
-  <!-- <node name="LocalPlanner" pkg="capt_planner" type="LocalPlanner" output="screen"/> -->
+  <node name="LocalPlanner" pkg="capt_planner" type="LocalPlanner" output="screen"/>
 
 </launch>

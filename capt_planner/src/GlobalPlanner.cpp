@@ -41,6 +41,5 @@ int main(int argc, char **argv) {
   pubStart = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 1);
   pubGoal  = nh.advertise<geometry_msgs::PoseStamped>("/goal", 1);
 
-  // pub = nh.advertise<std_msgs::Int64>("/number_count", 10);
   ros::spin();
 }

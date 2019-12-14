@@ -1,0 +1,16 @@
+<launch>
+
+  <!-- map setting  -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find capt_planner)/maps/empty.yaml" />
+
+  <!-- Rviz -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find capt_planner)/config/rviz_footstep_planning.rviz" />
+
+  <!-- load Valkyrie parameters -->
+  <node name="footstep_planner" pkg="footstep_planner" type="footstep_planner_node" >
+    <rosparam file="$(find capt_planner)/config/planning_params.yaml" command="load" />
+    <rosparam file="$(find capt_planner)/config/planning_params_valkyrie.yaml" command="load" />
+    <rosparam file="$(find capt_planner)/config/footsteps_valkyrie.yaml" command="load" />
+  </node>
+
+</launch>

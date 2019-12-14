@@ -12,8 +12,11 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
   <depend>roscpp</depend>
   <depend>tf</depend>
+  <depend>choreonoid</depend>
   <depend>choreonoid_rvizplugin</depend>
   <depend>footstep_planner</depend>
 

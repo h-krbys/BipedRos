@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(capt_planner)
 
+set(RVIZ_SOURCES ../choreonoid_rvizplugin/src/RvizPublisher.cpp)
+
 set(CAPT_DIR "" CACHE PATH "root directory of Capturability")
 if(EXISTS ${CAPT_DIR})
   foreach(directory ${CAPT_DIR})
@@ -43,7 +45,7 @@ add_definitions(${CHOREONOID_DEFINITIONS})
 
 include_directories(
   include
-  src
+  ../choreonoid_rvizplugin/include
   ${catkin_INCLUDE_DIRS}
   ${EXPAT_INCLUDE_DIRS}
   ${CHOREONOID_INCLUDE_DIRS}
@@ -57,7 +59,7 @@ link_directories(
 function(add_controller)
   set(target ${ARGV0})
   list(REMOVE_AT ARGV 0)
-  add_executable(${target} ${ARGV})
+  add_executable(${target} ${ARGV} ${RVIZ_SOURCES})
   add_dependencies(${target} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
   target_link_libraries(${target} ${catkin_LIBRARIES})
   install(TARGETS ${target}

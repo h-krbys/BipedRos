@@ -20,6 +20,7 @@ RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 4.0){
   pubIcp          = nh->advertise<visualization_msgs::Marker>("/marker/icp", 1);
   pubFootRRef     = nh->advertise<visualization_msgs::Marker>("/marker/foot_r_ref", 1);
   pubFootLRef     = nh->advertise<visualization_msgs::Marker>("/marker/foot_l_ref", 1);
+  pubFootstepRef  = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_ref", 1);
   pubFootstepR    = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_r", 1);
   pubFootstepL    = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_l", 1);
   pubGridMap      = nh->advertise<visualization_msgs::Marker>("/marker/capture_region", 1);
@@ -53,6 +54,7 @@ RvizPublisher::~RvizPublisher(){
 }
 
 void RvizPublisher::initialize(){
+  footstepRef.clear();
   footstepR.clear();
   footstepL.clear();
   gridMap.clear();
@@ -74,36 +76,38 @@ bool RvizPublisher::timeChanged(double time){
 }
 
 void RvizPublisher::simulation(double time){
-  data_.e_copRef    = e_copRef;
-  data_.e_comRef    = e_comRef;
-  data_.e_icpRef    = e_icpRef;
-  data_.e_cop       = e_cop;
-  data_.e_com       = e_com;
-  data_.e_icp       = e_icp;
-  data_.e_footRRef  = e_footRRef;
-  data_.e_footLRef  = e_footLRef;
-  data_.e_footR     = e_footR;
-  data_.e_footL     = e_footL;
-  data_.e_footstepR = e_footstepR;
-  data_.e_footstepL = e_footstepL;
-  data_.e_gridMap   = e_gridMap;
-  data_.e_goal      = e_goal;
+  data_.e_copRef      = e_copRef;
+  data_.e_comRef      = e_comRef;
+  data_.e_icpRef      = e_icpRef;
+  data_.e_cop         = e_cop;
+  data_.e_com         = e_com;
+  data_.e_icp         = e_icp;
+  data_.e_footRRef    = e_footRRef;
+  data_.e_footLRef    = e_footLRef;
+  data_.e_footR       = e_footR;
+  data_.e_footL       = e_footL;
+  data_.e_footstepRef = e_footstepRef;
+  data_.e_footstepR   = e_footstepR;
+  data_.e_footstepL   = e_footstepL;
+  data_.e_gridMap     = e_gridMap;
+  data_.e_goal        = e_goal;
 
-  data_.link      = link;
-  data_.copRef    = copRef;
-  data_.comRef    = comRef;
-  data_.icpRef    = icpRef;
-  data_.footRRef  = footRRef;
-  data_.footLRef  = footLRef;
-  data_.cop       = cop;
-  data_.com       = com;
-  data_.icp       = icp;
-  data_.footR     = footR;
-  data_.footL     = footL;
-  data_.footstepR = footstepR;
-  data_.footstepL = footstepL;
-  data_.gridMap   = gridMap;
-  data_.goal      = goal;
+  data_.link        = link;
+  data_.copRef      = copRef;
+  data_.comRef      = comRef;
+  data_.icpRef      = icpRef;
+  data_.footRRef    = footRRef;
+  data_.footLRef    = footLRef;
+  data_.cop         = cop;
+  data_.com         = com;
+  data_.icp         = icp;
+  data_.footR       = footR;
+  data_.footL       = footL;
+  data_.footstepRef = footstepRef;
+  data_.footstepR   = footstepR;
+  data_.footstepL   = footstepL;
+  data_.gridMap     = gridMap;
+  data_.goal        = goal;
   data.push_back(data_);
 
   publishAll(time);
@@ -114,36 +118,38 @@ void RvizPublisher::simulation(double time){
 void RvizPublisher::playback(double time){
   if(time <= maxTime) {
     const int num_timestep = time / dt;
-    e_copRef    = data[num_timestep].e_copRef;
-    e_comRef    = data[num_timestep].e_comRef;
-    e_icpRef    = data[num_timestep].e_icpRef;
-    e_cop       = data[num_timestep].e_cop;
-    e_com       = data[num_timestep].e_com;
-    e_icp       = data[num_timestep].e_icp;
-    e_footRRef  = data[num_timestep].e_footRRef;
-    e_footLRef  = data[num_timestep].e_footLRef;
-    e_footR     = data[num_timestep].e_footR;
-    e_footL     = data[num_timestep].e_footL;
-    e_footstepR = data[num_timestep].e_footstepR;
-    e_footstepL = data[num_timestep].e_footstepL;
-    e_gridMap   = data[num_timestep].e_gridMap;
-    e_goal      = data[num_timestep].e_goal;
+    e_copRef      = data[num_timestep].e_copRef;
+    e_comRef      = data[num_timestep].e_comRef;
+    e_icpRef      = data[num_timestep].e_icpRef;
+    e_cop         = data[num_timestep].e_cop;
+    e_com         = data[num_timestep].e_com;
+    e_icp         = data[num_timestep].e_icp;
+    e_footRRef    = data[num_timestep].e_footRRef;
+    e_footLRef    = data[num_timestep].e_footLRef;
+    e_footR       = data[num_timestep].e_footR;
+    e_footL       = data[num_timestep].e_footL;
+    e_footstepRef = data[num_timestep].e_footstepRef;
+    e_footstepR   = data[num_timestep].e_footstepR;
+    e_footstepL   = data[num_timestep].e_footstepL;
+    e_gridMap     = data[num_timestep].e_gridMap;
+    e_goal        = data[num_timestep].e_goal;
 
-    link      = data[num_timestep].link;
-    copRef    = data[num_timestep].copRef;
-    comRef    = data[num_timestep].comRef;
-    icpRef    = data[num_timestep].icpRef;
-    footRRef  = data[num_timestep].footRRef;
-    footLRef  = data[num_timestep].footLRef;
-    cop       = data[num_timestep].cop;
-    com       = data[num_timestep].com;
-    icp       = data[num_timestep].icp;
-    footR     = data[num_timestep].footR;
-    footL     = data[num_timestep].footL;
-    footstepR = data[num_timestep].footstepR;
-    footstepL = data[num_timestep].footstepL;
-    gridMap   = data[num_timestep].gridMap;
-    goal      = data[num_timestep].goal;
+    link        = data[num_timestep].link;
+    copRef      = data[num_timestep].copRef;
+    comRef      = data[num_timestep].comRef;
+    icpRef      = data[num_timestep].icpRef;
+    footRRef    = data[num_timestep].footRRef;
+    footLRef    = data[num_timestep].footLRef;
+    cop         = data[num_timestep].cop;
+    com         = data[num_timestep].com;
+    icp         = data[num_timestep].icp;
+    footR       = data[num_timestep].footR;
+    footL       = data[num_timestep].footL;
+    footstepRef = data[num_timestep].footstepRef;
+    footstepR   = data[num_timestep].footstepR;
+    footstepL   = data[num_timestep].footstepL;
+    gridMap     = data[num_timestep].gridMap;
+    goal        = data[num_timestep].goal;
 
     publishAll(time);
   }
@@ -159,6 +165,7 @@ void RvizPublisher::publishAll(double time){
   publishCom();
   publishCop();
   publishIcp();
+  publishFootstepRef();
   publishFootstepR();
   publishFootstepL();
   publishGridMap();
@@ -241,6 +248,11 @@ void RvizPublisher::setCop(Vector3 cop){
 void RvizPublisher::setIcp(Vector3 icp){
   e_icp     = true;
   this->icp = icp;
+}
+
+void RvizPublisher::setFootstepRef(std::vector<Vector3> footstepRef){
+  e_footstepRef     = true;
+  this->footstepRef = footstepRef;
 }
 
 void RvizPublisher::setFootstepR(std::vector<Vector3> footstepR){
@@ -570,6 +582,53 @@ void RvizPublisher::publishIcp(){
   marker.lifetime = ros::Duration();
 
   pubIcp.publish(marker);
+}
+
+void RvizPublisher::publishFootstepRef(){
+  const int num_step = (int)footstepRef.size();
+
+  visualization_msgs::MarkerArray marker_array;
+  marker_array.markers.resize(num_step);
+  for (int i = 0; i < num_step; i++) {
+    marker_array.markers[i].header.frame_id = "world";
+    marker_array.markers[i].header.stamp    = ros::Time::now();
+    marker_array.markers[i].ns              = "markers";
+    marker_array.markers[i].id              = i;
+    marker_array.markers[i].lifetime        = ros::Duration();
+
+    marker_array.markers[i].type = visualization_msgs::Marker::MESH_RESOURCE;
+
+    if(e_footstepR == true) {
+      marker_array.markers[i].action = visualization_msgs::Marker::ADD;
+    }else{
+      marker_array.markers[i].action = visualization_msgs::Marker::DELETEALL;
+    }
+
+    marker_array.markers[i].pose.position.x    = footstepRef[i].x();
+    marker_array.markers[i].pose.position.y    = footstepRef[i].y();
+    marker_array.markers[i].pose.position.z    = footstepRef[i].z();
+    marker_array.markers[i].pose.orientation.x = 0.0;
+    marker_array.markers[i].pose.orientation.y = 0.0;
+    marker_array.markers[i].pose.orientation.z = 0.0;
+    marker_array.markers[i].pose.orientation.w = 1.0;
+
+    marker_array.markers[i].scale.x = 1.0;
+    marker_array.markers[i].scale.y = 1.0;
+    marker_array.markers[i].scale.z = 1.0;
+
+    marker_array.markers[i].mesh_resource = "package://choreonoid_rvizplugin/meshes/valkyrie_foot.stl";
+    marker_array.markers[i].color.r       = 1.0;
+    marker_array.markers[i].color.g       = 1.0;
+    marker_array.markers[i].color.b       = 1.0;
+    marker_array.markers[i].color.a       = 0.5;
+  }
+
+  if(e_footstepRef == false) {
+    marker_array.markers.resize(1);
+    marker_array.markers[0].action = visualization_msgs::Marker::DELETEALL;
+  }
+
+  pubFootstepRef.publish(marker_array);
 }
 
 void RvizPublisher::publishFootstepR(){

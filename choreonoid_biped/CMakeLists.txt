@@ -43,6 +43,7 @@ function(add_cnoid_simple_controller)
   set(target ${ARGV0})
   list(REMOVE_AT ARGV 0)
   add_library(${target} SHARED ${ARGV})
+  target_compile_options(${target} PRIVATE -fPIC)
   target_link_libraries(${target} ${catkin_LIBRARIES} ${CHOREONOID_BODY_LIBRARIES} ${EXPAT_LIBRARIES} CnoidRvizPlugin)
   set_target_properties(${target} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CHOREONOID_PLUGIN_SUBDIR}/simplecontroller PREFIX "")

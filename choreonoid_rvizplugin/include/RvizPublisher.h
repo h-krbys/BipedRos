@@ -37,13 +37,13 @@ struct CaptData {
 
 struct PlotData {
   PlotData(){
-    e_copRef    = false; e_comRef = false; e_icpRef = false;
-    e_cop       = false; e_com = false; e_icp = false;
-    e_footRRef  = false; e_footLRef = false;
-    e_footR     = false; e_footL = false;
-    e_footstepR = false; e_footstepL = false;
-    e_gridMap   = false;
-    e_goal      = false;
+    e_copRef      = false; e_comRef = false; e_icpRef = false;
+    e_cop         = false; e_com = false; e_icp = false;
+    e_footRRef    = false; e_footLRef = false;
+    e_footR       = false; e_footL = false;
+    e_footstepRef = false; e_footstepR = false; e_footstepL = false;
+    e_gridMap     = false;
+    e_goal        = false;
   }
 
   std::vector<LinkData> link;
@@ -51,7 +51,7 @@ struct PlotData {
   Vector3               cop, com, icp;
   Vector3               footRRef, footLRef;
   Vector3               footR, footL;
-  std::vector<Vector3>  footstepR, footstepL;
+  std::vector<Vector3>  footstepRef, footstepR, footstepL;
   std::vector<CaptData> gridMap;
   Vector3               goal;
 
@@ -60,7 +60,7 @@ struct PlotData {
   bool e_cop, e_com, e_icp;
   bool e_footRRef, e_footLRef;
   bool e_footR, e_footL;
-  bool e_footstepR, e_footstepL;
+  bool e_footstepRef, e_footstepR, e_footstepL;
   bool e_gridMap;
   bool e_goal;
 };
@@ -85,6 +85,7 @@ public:
   void setCom(Vector3 com);
   void setCop(Vector3 cop);
   void setIcp(Vector3 icp);
+  void setFootstepRef(std::vector<Vector3> footstepRef);
   void setFootstepR(std::vector<Vector3> footstepR);
   void setFootstepL(std::vector<Vector3> footstepL);
   void setGridMap(std::vector<CaptData> gridMap);
@@ -105,6 +106,7 @@ public:
   void publishCom();
   void publishCop();
   void publishIcp();
+  void publishFootstepRef();
   void publishFootstepR();
   void publishFootstepL();
   void publishGridMap();
@@ -127,7 +129,7 @@ private:
   ros::Publisher pubComRef, pubCopRef, pubIcpRef;
   ros::Publisher pubCom, pubCop, pubIcp;
   ros::Publisher pubFootRRef, pubFootLRef;
-  ros::Publisher pubFootstepR, pubFootstepL;
+  ros::Publisher pubFootstepRef, pubFootstepR, pubFootstepL;
   ros::Publisher pubComRefTraj, pubCopRefTraj, pubIcpRefTraj;
   ros::Publisher pubComTraj, pubCopTraj, pubIcpTraj;
   ros::Publisher pubFootRRefTraj, pubFootLRefTraj;
@@ -140,7 +142,7 @@ private:
   Vector3               cop, com, icp;
   Vector3               footRRef, footLRef;
   Vector3               footR, footL;
-  std::vector<Vector3>  footstepR, footstepL;
+  std::vector<Vector3>  footstepRef, footstepR, footstepL;
   std::vector<CaptData> gridMap;
   Vector3               goal;
 
@@ -148,7 +150,7 @@ private:
   bool e_cop, e_com, e_icp;
   bool e_footRRef, e_footLRef;
   bool e_footR, e_footL;
-  bool e_footstepR, e_footstepL;
+  bool e_footstepRef, e_footstepR, e_footstepL;
   bool e_gridMap;
   bool e_goal;
 

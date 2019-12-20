@@ -4,7 +4,7 @@
   <node name="map_server" pkg="map_server" type="map_server" args="$(find capt_planner)/maps/empty.yaml" />
 
   <!-- Rviz -->
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find capt_planner)/config/rviz_footstep_planning.rviz" />
+  <node name="rviz2" pkg="rviz" type="rviz" args="-d $(find capt_planner)/config/rviz_footstep_planning.rviz" />
 
   <!-- load Valkyrie parameters -->
   <node name="footstep_planner" pkg="footstep_planner" type="footstep_planner_node" >

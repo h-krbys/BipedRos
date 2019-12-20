@@ -598,7 +598,7 @@ void RvizPublisher::publishFootstepRef(){
 
     marker_array.markers[i].type = visualization_msgs::Marker::MESH_RESOURCE;
 
-    if(e_footstepR == true) {
+    if(e_footstepRef == true) {
       marker_array.markers[i].action = visualization_msgs::Marker::ADD;
     }else{
       marker_array.markers[i].action = visualization_msgs::Marker::DELETEALL;

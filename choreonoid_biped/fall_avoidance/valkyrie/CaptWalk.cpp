@@ -38,11 +38,38 @@ class CaptWalk : public SimpleController
   RvizPublisher        publisher;
   std::vector<Vector3> footstepRef;
 
+  // capturability
+  Capt::Model         *model;
+  Capt::Param         *param;
+  Capt::Config        *config;
+  Capt::Grid          *grid;
+  Capt::Capturability *capturability;
+  double               omega;
+
+  // biped control
+  ComTracker *comTracker;
+  Kinematics *kinematics;
+
   // parameters
   // global planner
   Capt::Footstep footstep;
+  // local planner
+  Vector3 comRef, copRef, icpRef;
+  Vector3 com, com_, comVel, cop, icp;
+  Vector3 footRRef, footLRef;
+  Vector3 footR, footL;
 
 public:
+  void sync(){
+    com     = ioBody->calcCenterOfMass();
+    comVel  = ( com - com_ ) / dt;
+    com_    = com;
+    icp     = com + comVel / omega;
+    icp.z() = 0.0;
+    footR   = ioBody->link("rightFootSole")->position().translation();
+    footL   = ioBody->link("leftFootSole")->position().translation();
+  }
+
   void startPublish(Vector3 pos){
     geometry_msgs::PoseWithCovarianceStamped startPose;
     startPose.header.frame_id         = "map";
@@ -119,6 +146,22 @@ public:
       io->enableInput(io->body()->link(i), LINK_POSITION);
     }
 
+    // set capturability parameters
+    model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
+    param         = new Capt::Param("/home/dl-box/study/capturability/data/footstep.xml");
+    config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
+    grid          = new Capt::Grid(param);
+    capturability = new Capt::Capturability(grid);
+    // capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
+    // capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
+
+    model->read(&omega, "omega");
+
+    comTracker = new ComTracker(config);
+    comTracker->setBody(ioBody);
+    kinematics = new Kinematics();
+    kinematics->setBody(ioBody);
+
     phase   = INIT;
     t       = 0.0;
     elapsed = 0.0;
@@ -130,27 +173,34 @@ public:
 
   virtual bool control() override
   {
-    publisher.setPose(ioBody);
-    publisher.setFootstepRef(footstepRef);
-    publisher.simulation(t);
+    sync();
 
     switch( phase ) {
     case INIT:
+      comRef     = com;
+      comRef.z() = 1.0;
+      comTracker->set(comRef, footR, footL);
+
       // posLLeg.translation().z() += 0.1 * dt;
       // posRLeg.translation().z() += 0.1 * dt;
       // if( com.z() <= 1.0 ) {
       //   phase   = WAIT;
       //   elapsed = 0.0;
       // }
-      if(t > 1.0) {
-        startPublish(Vector3(0, 0, 0) );
-        goalPublish(Vector3(2, 0, 0) );
-        phase = WAIT;
-      }
+
+      // if(t > 1.0) {
+      //   startPublish(Vector3(0, 0, 0) );
+      //   goalPublish(Vector3(2, 0, 0) );
+      //   phase = WAIT;
+      // }
       break;
     case WAIT:
       break;
     }
+
+    publisher.setPose(comTracker->getBody() );
+    publisher.setFootstepRef(footstepRef);
+    publisher.simulation(t);
 
     t       += dt;
     elapsed += dt;

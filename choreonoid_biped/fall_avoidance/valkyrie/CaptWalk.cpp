@@ -44,7 +44,7 @@ class CaptWalk : public SimpleController
   Capt::Config        *config;
   Capt::Grid          *grid;
   Capt::Capturability *capturability;
-  double               omega;
+  double               omega, h;
 
   // biped control
   ComTracker *comTracker;
@@ -55,19 +55,34 @@ class CaptWalk : public SimpleController
   Capt::Footstep footstep;
   // local planner
   Vector3 comRef, copRef, icpRef;
-  Vector3 com, com_, comVel, cop, icp;
+  Vector3 com, comVel, comAcc, cop, icp;
   Vector3 footRRef, footLRef;
   Vector3 footR, footL;
 
 public:
-  void sync(){
-    com     = ioBody->calcCenterOfMass();
-    comVel  = ( com - com_ ) / dt;
-    com_    = com;
-    icp     = com + comVel / omega;
-    icp.z() = 0.0;
-    footR   = ioBody->link("rightFootSole")->position().translation();
-    footL   = ioBody->link("leftFootSole")->position().translation();
+  void init(){
+    cop       = Vector3::Zero();
+    com       = Vector3::Zero();
+    com.z()   = h;
+    comVel    = Vector3::Zero();
+    comAcc    = Vector3::Zero();
+    icp       = Vector3::Zero();
+    footR     = Vector3::Zero();
+    footR.y() = -0.2;
+    footL     = Vector3::Zero();
+    footL.y() = +0.2;
+  }
+
+  void step(){
+    // cop     = copMod;
+    com       += comVel * dt;
+    com.z()    = h;
+    comVel    += comAcc * dt;
+    comVel.z() = 0.0;
+    comAcc     = omega * omega * ( com - cop );
+    comAcc.z() = 0.0;
+    icp        = com + comVel / omega;
+    icp.z()    = 0.0;
   }
 
   void startPublish(Vector3 pos){
@@ -147,15 +162,16 @@ public:
     }
 
     // set capturability parameters
-    model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
-    param         = new Capt::Param("/home/dl-box/study/capturability/data/footstep.xml");
-    config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
+    model         = new Capt::Model("/home/kuribayashi/study/capturability/data/valkyrie.xml");
+    param         = new Capt::Param("/home/kuribayashi/study/capturability/data/footstep.xml");
+    config        = new Capt::Config("/home/kuribayashi/study/capturability/data/valkyrie_config.xml");
     grid          = new Capt::Grid(param);
     capturability = new Capt::Capturability(grid);
-    // capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
-    // capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
+    // capturability->load("/home/kuribayashi/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
+    // capturability->load("/home/kuribayashi/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
 
     model->read(&omega, "omega");
+    model->read(&h, "com_height");
 
     comTracker = new ComTracker(config);
     comTracker->setBody(ioBody);
@@ -173,33 +189,28 @@ public:
 
   virtual bool control() override
   {
-    sync();
 
     switch( phase ) {
     case INIT:
-      comRef     = com;
-      comRef.z() = 1.0;
-      comTracker->set(comRef, footR, footL);
-
-      // posLLeg.translation().z() += 0.1 * dt;
-      // posRLeg.translation().z() += 0.1 * dt;
-      // if( com.z() <= 1.0 ) {
-      //   phase   = WAIT;
-      //   elapsed = 0.0;
-      // }
-
-      // if(t > 1.0) {
-      //   startPublish(Vector3(0, 0, 0) );
-      //   goalPublish(Vector3(2, 0, 0) );
-      //   phase = WAIT;
-      // }
+      init();
+      comAcc.x() += 0.01;
+      if(t > 1.0) {
+        startPublish(Vector3(0, 0, 0) );
+        goalPublish(Vector3(2, 0, 0) );
+        phase = WAIT;
+      }
       break;
     case WAIT:
       break;
     }
 
-    publisher.setPose(comTracker->getBody() );
+    step();
+
     publisher.setFootstepRef(footstepRef);
+
+    publisher.setCop(cop);
+    publisher.setCom(com);
+    publisher.setIcp(icp);
     publisher.simulation(t);
 
     t       += dt;

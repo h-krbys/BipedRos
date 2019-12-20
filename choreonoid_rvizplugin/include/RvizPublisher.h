@@ -111,6 +111,8 @@ public:
   void publishFootstepL();
   void publishGridMap();
   void publishGoal();
+  void publishPendulumRef();
+  void publishPendulum();
 
   void publishComRefTraj(double time);
   void publishCopRefTraj(double time);
@@ -136,6 +138,7 @@ private:
   ros::Publisher pubFootRTraj, pubFootLTraj;
   ros::Publisher pubGridMap;
   ros::Publisher pubGoal;
+  ros::Publisher pubPendulumRef, pubPendulum;
 
   std::vector<LinkData> link;
   Vector3               copRef, comRef, icpRef;

@@ -4,7 +4,7 @@ using namespace std;
 using namespace cnoid;
 using namespace Eigen;
 
-RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 4.0){
+RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 10.0){
   // node
   int    argc = 0;
   char** argv = 0;
@@ -25,6 +25,8 @@ RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 4.0){
   pubFootstepL    = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_l", 1);
   pubGridMap      = nh->advertise<visualization_msgs::Marker>("/marker/capture_region", 1);
   pubGoal         = nh->advertise<visualization_msgs::Marker>("/marker/goal", 1);
+  pubPendulumRef  = nh->advertise<visualization_msgs::Marker>("/marker/pendulum_ref", 1);
+  pubPendulum     = nh->advertise<visualization_msgs::Marker>("/marker/pendulum", 1);
   pubComRefTraj   = nh->advertise<visualization_msgs::Marker>("/marker/com_ref_traj", 1);
   pubCopRefTraj   = nh->advertise<visualization_msgs::Marker>("/marker/cop_ref_traj", 1);
   pubIcpRefTraj   = nh->advertise<visualization_msgs::Marker>("/marker/icp_ref_traj", 1);
@@ -170,6 +172,8 @@ void RvizPublisher::publishAll(double time){
   publishFootstepL();
   publishGridMap();
   publishGoal();
+  publishPendulumRef();
+  publishPendulum();
   publishComRefTraj(time);
   publishCopRefTraj(time);
   publishIcpRefTraj(time);
@@ -831,6 +835,76 @@ void RvizPublisher::publishGoal(){
   marker.lifetime = ros::Duration();
 
   pubGoal.publish(marker);
+}
+
+void RvizPublisher::publishPendulumRef(){
+  visualization_msgs::Marker marker;
+
+  marker.header.frame_id = "world";
+  marker.header.stamp    = ros::Time::now();
+  marker.ns              = "markers";
+  marker.id              = 0;
+
+  marker.type   = visualization_msgs::Marker::LINE_STRIP;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.scale.x = lineWidth * 2;
+  marker.scale.y = lineWidth * 2;
+  marker.scale.z = lineWidth * 2;
+
+  marker.color.r = 1.0;
+  marker.color.g = 1.0;
+  marker.color.b = 1.0;
+  marker.color.a = 0.5;
+
+  if(e_copRef && e_comRef) {
+    marker.points.resize(2);
+    marker.points[0].x = copRef.x();
+    marker.points[0].y = copRef.y();
+    marker.points[0].z = copRef.z();
+    marker.points[1].x = comRef.x();
+    marker.points[1].y = comRef.y();
+    marker.points[1].z = comRef.z();
+  }
+
+  marker.lifetime = ros::Duration();
+
+  pubPendulumRef.publish(marker);
+}
+
+void RvizPublisher::publishPendulum(){
+  visualization_msgs::Marker marker;
+
+  marker.header.frame_id = "world";
+  marker.header.stamp    = ros::Time::now();
+  marker.ns              = "markers";
+  marker.id              = 0;
+
+  marker.type   = visualization_msgs::Marker::LINE_STRIP;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.scale.x = lineWidth * 2;
+  marker.scale.y = lineWidth * 2;
+  marker.scale.z = lineWidth * 2;
+
+  marker.color.r = 1.0;
+  marker.color.g = 1.0;
+  marker.color.b = 1.0;
+  marker.color.a = 1.0;
+
+  if(e_cop && e_com) {
+    marker.points.resize(2);
+    marker.points[0].x = cop.x();
+    marker.points[0].y = cop.y();
+    marker.points[0].z = cop.z();
+    marker.points[1].x = com.x();
+    marker.points[1].y = com.y();
+    marker.points[1].z = com.z();
+  }
+
+  marker.lifetime = ros::Duration();
+
+  pubPendulum.publish(marker);
 }
 
 void RvizPublisher::publishComRefTraj(double time){

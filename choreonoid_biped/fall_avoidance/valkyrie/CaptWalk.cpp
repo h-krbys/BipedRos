@@ -17,9 +17,15 @@ const double pgain = 10;
 const double dgain = 0.0;
 
 namespace {
-enum Phase {
+
+enum SufPhase {
   INIT, WAIT, DSP_LR, SSP_R, DSP_RL, SSP_L, STOP
 };
+
+enum SwfPhase {
+  PRE_SWING, SWING, POST_SWING
+};
+
 }
 
 class CaptWalk : public SimpleController
@@ -28,7 +34,8 @@ class CaptWalk : public SimpleController
   double              t, dt, elapsed;
   std::vector<double> qref;
   std::vector<double> qold;
-  Phase               phase;
+  SufPhase            phase;
+  // SwfPhase            phase;
 
   // ros setting
   ros::NodeHandle nh;
@@ -182,11 +189,6 @@ public:
 
     model->read(&omega, "omega");
     model->read(&h, "com_height");
-
-    comTracker = new ComTracker(config);
-    comTracker->setBody(ioBody);
-    kinematics = new Kinematics();
-    kinematics->setBody(ioBody);
 
     phase   = INIT;
     t       = 0.0;

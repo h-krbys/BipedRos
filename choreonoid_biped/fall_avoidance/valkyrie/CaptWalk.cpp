@@ -18,7 +18,7 @@ const double dgain = 0.0;
 
 namespace {
 enum Phase {
-  INIT, WAIT, SSP_R, SSP_L, STOP
+  INIT, WAIT, DSP_LR, SSP_R, DSP_RL, SSP_L, STOP
 };
 }
 
@@ -203,14 +203,21 @@ public:
     switch( phase ) {
     case INIT:
       init();
-      // comAcc.x() += 0.01;
       if(t > 1.0) {
         startPublish(Vector3(0, 0, 0) );
         goalPublish(Vector3(2, 0, 0) );
-        phase = WAIT;
+        phase = DSP_LR;
       }
       break;
-    case WAIT:
+    case DSP_LR:
+      break;
+    case SSP_R:
+      break;
+    case DSP_RL:
+      break;
+    case SSP_L:
+      break;
+    default:
       break;
     }
 

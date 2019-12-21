@@ -4,7 +4,7 @@ using namespace std;
 using namespace cnoid;
 using namespace Eigen;
 
-RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 10.0){
+RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 10.0), forceScale(0.0025){
   // node
   int    argc = 0;
   char** argv = 0;
@@ -24,7 +24,7 @@ RvizPublisher::RvizPublisher() : markerSize(0.1), lineWidth(markerSize / 10.0){
   pubFootstepR    = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_r", 1);
   pubFootstepL    = nh->advertise<visualization_msgs::MarkerArray>("/marker/footstep_l", 1);
   pubGridMap      = nh->advertise<visualization_msgs::Marker>("/marker/capture_region", 1);
-  pubGoal         = nh->advertise<visualization_msgs::Marker>("/marker/goal", 1);
+  pubForce        = nh->advertise<visualization_msgs::Marker>("/marker/force", 1);
   pubPendulumRef  = nh->advertise<visualization_msgs::Marker>("/marker/pendulum_ref", 1);
   pubPendulum     = nh->advertise<visualization_msgs::Marker>("/marker/pendulum", 1);
   pubComRefTraj   = nh->advertise<visualization_msgs::Marker>("/marker/com_ref_traj", 1);
@@ -92,7 +92,7 @@ void RvizPublisher::simulation(double time){
   data_.e_footstepR   = e_footstepR;
   data_.e_footstepL   = e_footstepL;
   data_.e_gridMap     = e_gridMap;
-  data_.e_goal        = e_goal;
+  data_.e_force       = e_force;
 
   data_.link        = link;
   data_.copRef      = copRef;
@@ -109,7 +109,7 @@ void RvizPublisher::simulation(double time){
   data_.footstepR   = footstepR;
   data_.footstepL   = footstepL;
   data_.gridMap     = gridMap;
-  data_.goal        = goal;
+  data_.force       = force;
   data.push_back(data_);
 
   publishAll(time);
@@ -134,7 +134,7 @@ void RvizPublisher::playback(double time){
     e_footstepR   = data[num_timestep].e_footstepR;
     e_footstepL   = data[num_timestep].e_footstepL;
     e_gridMap     = data[num_timestep].e_gridMap;
-    e_goal        = data[num_timestep].e_goal;
+    e_force       = data[num_timestep].e_force;
 
     link        = data[num_timestep].link;
     copRef      = data[num_timestep].copRef;
@@ -151,7 +151,7 @@ void RvizPublisher::playback(double time){
     footstepR   = data[num_timestep].footstepR;
     footstepL   = data[num_timestep].footstepL;
     gridMap     = data[num_timestep].gridMap;
-    goal        = data[num_timestep].goal;
+    force       = data[num_timestep].force;
 
     publishAll(time);
   }
@@ -171,7 +171,7 @@ void RvizPublisher::publishAll(double time){
   publishFootstepR();
   publishFootstepL();
   publishGridMap();
-  publishGoal();
+  publishForce();
   publishPendulumRef();
   publishPendulum();
   publishComRefTraj(time);
@@ -275,9 +275,9 @@ void RvizPublisher::setGridMap(std::vector<CaptData> gridMap){
   this->gridMap = gridMap;
 }
 
-void RvizPublisher::setGoal(Vector3 goal){
-  e_goal     = true;
-  this->goal = goal;
+void RvizPublisher::setForce(Vector3 force){
+  e_force     = true;
+  this->force = force;
 }
 
 void RvizPublisher::publishPose(){
@@ -793,7 +793,7 @@ void RvizPublisher::publishGridMap(){
   pubGridMap.publish(marker);
 }
 
-void RvizPublisher::publishGoal(){
+void RvizPublisher::publishForce(){
   visualization_msgs::Marker marker;
   marker.header.frame_id = "world";
   marker.header.stamp    = ros::Time::now();
@@ -801,23 +801,15 @@ void RvizPublisher::publishGoal(){
   marker.id              = 0;
 
   marker.type = visualization_msgs::Marker::ARROW;
-  if(e_goal == true) {
+  if(e_force == true) {
     marker.action = visualization_msgs::Marker::ADD;
   }else{
     marker.action = visualization_msgs::Marker::DELETE;
   }
 
-  // marker.pose.position.x    = goal.x();
-  // marker.pose.position.y    = goal.y();
-  // marker.pose.position.z    = goal.z();
-  // marker.pose.orientation.x = 0.0;
-  // marker.pose.orientation.y = 0.0;
-  // marker.pose.orientation.z = 0.0;
-  // marker.pose.orientation.w = 1.0;
-
-  marker.scale.x = 2 * lineWidth;
-  marker.scale.y = 2 * lineWidth * 2;
-  marker.scale.z = 2 * lineWidth * 2;
+  marker.scale.x = 0.03; // line width
+  marker.scale.y = 0.06; // hat width
+  marker.scale.z = 0.05; // simeq hat length / line length
 
   marker.color.r = 25.0 / 255;
   marker.color.g = 255.0 / 255;
@@ -825,16 +817,16 @@ void RvizPublisher::publishGoal(){
   marker.color.a = 0.8;
 
   marker.points.resize(2);
-  marker.points[0].x = goal.x();
-  marker.points[0].y = goal.y();
-  marker.points[0].z = goal.z();
-  marker.points[1].x = goal.x() + 0.25;
-  marker.points[1].y = goal.y();
-  marker.points[1].z = goal.z();
+  marker.points[0].x = com.x(); // start pos.
+  marker.points[0].y = com.y();
+  marker.points[0].z = com.z();
+  marker.points[1].x = com.x() + forceScale * force.x(); // end pos.
+  marker.points[1].y = com.y() + forceScale * force.y();
+  marker.points[1].z = com.z() + forceScale * force.z();
 
   marker.lifetime = ros::Duration();
 
-  pubGoal.publish(marker);
+  pubForce.publish(marker);
 }
 
 void RvizPublisher::publishPendulumRef(){

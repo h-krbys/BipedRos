@@ -4,6 +4,7 @@
 #include "RvizPublisher.h"
 #include "Capt.h"
 #include <ros/ros.h>
+#include <sensor_msgs/Joy.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -32,7 +33,7 @@ class CaptWalk : public SimpleController
   // ros setting
   ros::NodeHandle nh;
   ros::Publisher  startPublisher, goalPublisher;
-  ros::Subscriber footstepSubscriber;
+  ros::Subscriber joySubscriber, footstepSubscriber;
 
   // rviz
   RvizPublisher        publisher;
@@ -58,6 +59,7 @@ class CaptWalk : public SimpleController
   Vector3 com, comVel, comAcc, cop, icp;
   Vector3 footRRef, footLRef;
   Vector3 footR, footL;
+  Vector3 force;
 
 public:
   void init(){
@@ -71,6 +73,7 @@ public:
     footR.y() = -0.2;
     footL     = Vector3::Zero();
     footL.y() = +0.2;
+    force     = Vector3::Zero();
   }
 
   void step(){
@@ -79,7 +82,7 @@ public:
     com.z()    = h;
     comVel    += comAcc * dt;
     comVel.z() = 0.0;
-    comAcc     = omega * omega * ( com - cop );
+    comAcc     = omega * omega * ( com - cop ) + force / ioBody->mass();
     comAcc.z() = 0.0;
     icp        = com + comVel / omega;
     icp.z()    = 0.0;
@@ -113,6 +116,12 @@ public:
     goalPublisher.publish(goalPose);
   }
 
+  void joyCallback(const sensor_msgs::Joy::ConstPtr &joy){
+    force.x() = 100 * ( joy->buttons[13] - joy->buttons[14] );
+    force.y() = 100 * ( joy->buttons[15] - joy->buttons[16] );
+    force.z() = 0.0;
+  }
+
   void footstepCallback( const nav_msgs::Path::ConstPtr &path){
     footstep.clear();
     footstepRef.clear();
@@ -138,6 +147,7 @@ public:
   {
     startPublisher     = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 1);
     goalPublisher      = nh.advertise<geometry_msgs::PoseStamped>("/goal", 1);
+    joySubscriber      = nh.subscribe<sensor_msgs::Joy>("/joy", 10, &CaptWalk::joyCallback, this);
     footstepSubscriber = nh.subscribe<nav_msgs::Path>("/footstep_planner/path", 10, &CaptWalk::footstepCallback, this);
     return true;
   }
@@ -193,7 +203,7 @@ public:
     switch( phase ) {
     case INIT:
       init();
-      comAcc.x() += 0.01;
+      // comAcc.x() += 0.01;
       if(t > 1.0) {
         startPublish(Vector3(0, 0, 0) );
         goalPublish(Vector3(2, 0, 0) );
@@ -211,6 +221,7 @@ public:
     publisher.setCop(cop);
     publisher.setCom(com);
     publisher.setIcp(icp);
+    publisher.setForce(force);
     publisher.simulation(t);
 
     t       += dt;

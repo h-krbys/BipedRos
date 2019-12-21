@@ -43,7 +43,7 @@ struct PlotData {
     e_footR       = false; e_footL = false;
     e_footstepRef = false; e_footstepR = false; e_footstepL = false;
     e_gridMap     = false;
-    e_goal        = false;
+    e_force       = false;
   }
 
   std::vector<LinkData> link;
@@ -53,7 +53,7 @@ struct PlotData {
   Vector3               footR, footL;
   std::vector<Vector3>  footstepRef, footstepR, footstepL;
   std::vector<CaptData> gridMap;
-  Vector3               goal;
+  Vector3               force;
 
   // e_* means enabled_*
   bool e_copRef, e_comRef, e_icpRef;
@@ -62,7 +62,7 @@ struct PlotData {
   bool e_footR, e_footL;
   bool e_footstepRef, e_footstepR, e_footstepL;
   bool e_gridMap;
-  bool e_goal;
+  bool e_force;
 };
 
 class RvizPublisher
@@ -89,7 +89,7 @@ public:
   void setFootstepR(std::vector<Vector3> footstepR);
   void setFootstepL(std::vector<Vector3> footstepL);
   void setGridMap(std::vector<CaptData> gridMap);
-  void setGoal(Vector3 goal);
+  void setForce(Vector3 force);
 
   bool timeChanged(double time);
   void simulation(double time);
@@ -110,7 +110,7 @@ public:
   void publishFootstepR();
   void publishFootstepL();
   void publishGridMap();
-  void publishGoal();
+  void publishForce();
   void publishPendulumRef();
   void publishPendulum();
 
@@ -137,7 +137,7 @@ private:
   ros::Publisher pubFootRRefTraj, pubFootLRefTraj;
   ros::Publisher pubFootRTraj, pubFootLTraj;
   ros::Publisher pubGridMap;
-  ros::Publisher pubGoal;
+  ros::Publisher pubForce;
   ros::Publisher pubPendulumRef, pubPendulum;
 
   std::vector<LinkData> link;
@@ -147,7 +147,7 @@ private:
   Vector3               footR, footL;
   std::vector<Vector3>  footstepRef, footstepR, footstepL;
   std::vector<CaptData> gridMap;
-  Vector3               goal;
+  Vector3               force;
 
   bool e_copRef, e_comRef, e_icpRef;
   bool e_cop, e_com, e_icp;
@@ -155,7 +155,7 @@ private:
   bool e_footR, e_footL;
   bool e_footstepRef, e_footstepR, e_footstepL;
   bool e_gridMap;
-  bool e_goal;
+  bool e_force;
 
   double dt, maxTime;
 
@@ -164,6 +164,7 @@ private:
 
   const double markerSize;
   const double lineWidth;
+  const double forceScale;
 
   // connect signal & slot
   TimeBar   *timeBar;

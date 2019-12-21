@@ -7,6 +7,7 @@ set(RVIZ_SOURCES ../../../choreonoid_rvizplugin/src/RvizPublisher.cpp)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  sensor_msgs
   std_msgs
   tf
   choreonoid

@@ -22,10 +22,6 @@ enum SufPhase {
   INIT, WAIT, DSP_LR, SSP_R, DSP_RL, SSP_L, STOP
 };
 
-enum SwfPhase {
-  PRE_SWING, SWING, POST_SWING
-};
-
 }
 
 class CaptWalk : public SimpleController
@@ -52,6 +48,8 @@ class CaptWalk : public SimpleController
   Capt::Config        *config;
   Capt::Grid          *grid;
   Capt::Capturability *capturability;
+  Capt::Planner       *planner;
+  Capt::Trajectory    *trajectory;
   double               omega, h;
 
   // biped control
@@ -62,11 +60,13 @@ class CaptWalk : public SimpleController
   // global planner
   Capt::Footstep footstep;
   // local planner
-  Vector3 comRef, copRef, icpRef;
-  Vector3 com, comVel, comAcc, cop, icp;
-  Vector3 footRRef, footLRef;
-  Vector3 footR, footL;
-  Vector3 force;
+  Vector3         comRef, copRef, icpRef;
+  Vector3         com, comVel, comAcc, cop, icp;
+  Vector3         footRRef, footLRef;
+  Vector3         footR, footL;
+  Vector3         force;
+  planner::Input  input;
+  planner::Output output;
 
 public:
   void init(){
@@ -85,14 +85,15 @@ public:
 
   void step(){
     // cop     = copMod;
-    com       += comVel * dt;
-    com.z()    = h;
-    comVel    += comAcc * dt;
+    com    += comVel * dt;
+    com.z() = h;
+    // comVel    += comAcc * dt;
+    comVel     = ( icp - com ) * omega;
     comVel.z() = 0.0;
-    comAcc     = omega * omega * ( com - cop ) + force / ioBody->mass();
-    comAcc.z() = 0.0;
-    icp        = com + comVel / omega;
-    icp.z()    = 0.0;
+    // comAcc     = omega * omega * ( com - cop ) + force / ioBody->mass();
+    // comAcc.z() = 0.0;
+    icp     = com + comVel / omega;
+    icp.z() = 0.0;
   }
 
   void startPublish(Vector3 pos){
@@ -184,8 +185,10 @@ public:
     config        = new Capt::Config("/home/kuribayashi/study/capturability/data/valkyrie_config.xml");
     grid          = new Capt::Grid(param);
     capturability = new Capt::Capturability(grid);
-    // capturability->load("/home/kuribayashi/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
-    // capturability->load("/home/kuribayashi/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
+    capturability->load("/home/kuribayashi/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
+    capturability->load("/home/kuribayashi/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
+    planner    = new Capt::Planner(model, param, config, grid, capturability);
+    trajectory = new Capt::Trajectory(model);
 
     model->read(&omega, "omega");
     model->read(&h, "com_height");
@@ -208,30 +211,88 @@ public:
       if(t > 1.0) {
         startPublish(Vector3(0, 0, 0) );
         goalPublish(Vector3(2, 0, 0) );
+        phase = WAIT;
+      }
+      break;
+    case WAIT:
+      if(t > 3.0) {
         phase = DSP_LR;
       }
       break;
     case DSP_LR:
+      elapsed        = 0.0;
+      input.footstep = footstep;
+      input.icp      = icp;
+      input.rfoot    = footR;
+      input.lfoot    = footL;
+      input.s_suf    = Capt::Foot::FOOT_R;
+      planner->set(input);
+      planner->plan();
+      output = planner->get();
+
+      trajectory->set(output, Capt::Foot::FOOT_R);
+
+      phase   = SSP_R;
+      elapsed = 0.0;
       break;
     case SSP_R:
+      if(elapsed < output.duration) {
+        cop   = trajectory->getCop(elapsed);
+        footR = trajectory->getFootR(elapsed);
+        footL = trajectory->getFootL(elapsed);
+      }else{
+        phase = DSP_RL;
+      }
       break;
     case DSP_RL:
+      elapsed        = 0.0;
+      input.footstep = footstep;
+      input.icp      = icp;
+      input.rfoot    = footR;
+      input.lfoot    = footL;
+      input.s_suf    = Capt::Foot::FOOT_L;
+      printf("input: %+1.3lf, %+1.3lf, %+1.3lf\n", input.icp.x(), input.icp.y(), input.icp.z() );
+      planner->set(input);
+      planner->plan();
+      output = planner->get();
+
+      trajectory->set(output, Capt::Foot::FOOT_L);
+
+      elapsed = 0.0;
+      phase   = SSP_L;
       break;
     case SSP_L:
+      if(elapsed < output.duration) {
+        cop   = trajectory->getCop(elapsed);
+        footR = trajectory->getFootR(elapsed);
+        footL = trajectory->getFootL(elapsed);
+      }else{
+        phase = DSP_LR;
+      }
       break;
     default:
       break;
     }
 
     step();
+    icp = trajectory->getIcp(elapsed);
 
     publisher.setFootstepRef(footstepRef);
+    publisher.setFootstepR(planner->getFootstepR() );
+    publisher.setFootstepL(planner->getFootstepL() );
+    publisher.setFootRRef(footR);
+    publisher.setFootLRef(footL);
 
     publisher.setCop(cop);
     publisher.setCom(com);
     publisher.setIcp(icp);
     publisher.setForce(force);
     publisher.simulation(t);
+
+    if( ( (int)( t * 1000 ) ) % ( 1000 )  == 0) {
+      startPublish(Vector3(com.x(), com.y(), 0) );
+      goalPublish(Vector3(2, 0, 0) );
+    }
 
     t       += dt;
     elapsed += dt;

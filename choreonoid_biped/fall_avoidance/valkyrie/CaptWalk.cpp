@@ -126,8 +126,10 @@ public:
   }
 
   void joyCallback(const sensor_msgs::Joy::ConstPtr &joy){
-    force.x() = 100 * ( joy->buttons[13] - joy->buttons[14] );
-    force.y() = 100 * ( joy->buttons[15] - joy->buttons[16] );
+    // force.x() = 100 * ( joy->buttons[13] - joy->buttons[14] );
+    // force.y() = 100 * ( joy->buttons[15] - joy->buttons[16] );
+    force.x() = 100 * joy->axes[7];
+    force.y() = 100 * joy->axes[6];
     force.z() = 0.0;
   }
 
@@ -181,13 +183,13 @@ public:
     }
 
     // set capturability parameters
-    model         = new Capt::Model("/home/kuribayashi/study/capturability/data/valkyrie.xml");
-    param         = new Capt::Param("/home/kuribayashi/study/capturability/data/footstep.xml");
-    config        = new Capt::Config("/home/kuribayashi/study/capturability/data/valkyrie_config.xml");
+    model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
+    param         = new Capt::Param("/home/dl-box/study/capturability/data/footstep.xml");
+    config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
     grid          = new Capt::Grid(param);
     capturability = new Capt::Capturability(grid);
-    capturability->load("/home/kuribayashi/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
-    capturability->load("/home/kuribayashi/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
+    capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
+    capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
     planner    = new Capt::Planner(model, param, config, grid, capturability);
     trajectory = new Capt::Trajectory(model);
 
@@ -214,7 +216,7 @@ public:
       init();
       if(t > 1.0) {
         startPublish(Vector3(0, 0, 0) );
-        goalPublish(Vector3(2, 0, 0) );
+        goalPublish(Vector3(3, 0, 0) );
         phase = WAIT;
       }
       break;
@@ -302,11 +304,11 @@ public:
     publisher.setForce(force);
     publisher.simulation(t);
 
-    if( ( (int)( t * 1000 ) ) % ( 1000 )  == 0) {
-      Vector3 center = ( footR + footL ) / 2;
-      startPublish(Vector3(center.x(), center.y(), center.z() ) );
-      goalPublish(Vector3(2, 0, 0) );
-    }
+    // if( ( (int)( t * 1000 ) ) % ( 1000 )  == 0) {
+    //   Vector3 center = ( footR + footL ) / 2;
+    //   startPublish(Vector3(center.x(), center.y(), 0.0 ) );
+    //   goalPublish(Vector3(3, 0, 0) );
+    // }
 
     t       += dt;
     elapsed += dt;

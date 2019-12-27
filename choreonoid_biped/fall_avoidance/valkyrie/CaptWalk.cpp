@@ -61,13 +61,13 @@ class CaptWalk : public SimpleController
   // global planner
   Capt::Footstep footstep;
   // local planner
-  Vector3         comRef, copRef, icpRef;
-  Vector3         com, comVel, comAcc, cop, icp;
-  Vector3         footRRef, footLRef;
-  Vector3         footR, footL;
-  Vector3         force;
-  planner::Input  input;
-  planner::Output output;
+  Vector3             comRef, copRef, icpRef;
+  Vector3             com, comVel, comAcc, cop, icp;
+  Vector3             footRRef, footLRef;
+  Vector3             footR, footL;
+  Vector3             force;
+  Capt::EnhancedState state;
+  Capt::EnhancedInput input;
 
 public:
   void init(){
@@ -184,12 +184,12 @@ public:
 
     // set capturability parameters
     model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
-    param         = new Capt::Param("/home/dl-box/study/capturability/data/footstep.xml");
+    param         = new Capt::Param("/home/dl-box/study/capturability/data/valkyrie_xy.xml");
     config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
     grid          = new Capt::Grid(param);
     capturability = new Capt::Capturability(grid);
-    capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Basin.csv", Capt::DataType::BASIN);
-    capturability->load("/home/dl-box/study/capturability/build/bin/gpu/Nstep.csv", Capt::DataType::NSTEP);
+    capturability->loadBasin("/home/dl-box/study/capturability/build/bin/cpu/Basin.csv");
+    capturability->loadNstep("/home/dl-box/study/capturability/build/bin/cpu/Nstep.csv");
     planner    = new Capt::Planner(model, param, config, grid, capturability);
     trajectory = new Capt::Trajectory(model);
 
@@ -227,16 +227,17 @@ public:
       break;
     case DSP_LR:
       elapsed        = 0.0;
-      input.footstep = footstep;
-      input.icp      = icp;
-      input.rfoot    = footR;
-      input.lfoot    = footL;
-      input.s_suf    = Capt::Foot::FOOT_R;
-      planner->set(input);
+      state.footstep = footstep;
+      state.icp      = icp;
+      state.rfoot    = footR;
+      state.lfoot    = footL;
+      state.s_suf    = Capt::Foot::FOOT_R;
+      state.elapsed  = 0.0;
+      planner->set(state);
       planner->plan();
-      output = planner->get();
+      input = planner->get();
 
-      trajectory->set(output, Capt::Foot::FOOT_R);
+      trajectory->set(input, Capt::Foot::FOOT_R);
       copRef = trajectory->getCop(elapsed);
       icpRef = trajectory->getIcp(elapsed);
 
@@ -244,7 +245,7 @@ public:
       elapsed = 0.0;
       break;
     case SSP_R:
-      if(elapsed < output.duration) {
+      if(elapsed < input.duration) {
         copRef = trajectory->getCop(elapsed);
         icpRef = trajectory->getIcp(elapsed);
         footR  = trajectory->getFootR(elapsed);
@@ -255,16 +256,17 @@ public:
       break;
     case DSP_RL:
       elapsed        = 0.0;
-      input.footstep = footstep;
-      input.icp      = icp;
-      input.rfoot    = footR;
-      input.lfoot    = footL;
-      input.s_suf    = Capt::Foot::FOOT_L;
-      planner->set(input);
+      state.footstep = footstep;
+      state.icp      = icp;
+      state.rfoot    = footR;
+      state.lfoot    = footL;
+      state.s_suf    = Capt::Foot::FOOT_L;
+      state.elapsed  = 0.0;
+      planner->set(state);
       planner->plan();
-      output = planner->get();
+      input = planner->get();
 
-      trajectory->set(output, Capt::Foot::FOOT_L);
+      trajectory->set(input, Capt::Foot::FOOT_L);
       copRef = trajectory->getCop(elapsed);
       icpRef = trajectory->getIcp(elapsed);
 
@@ -272,7 +274,7 @@ public:
       phase   = SSP_L;
       break;
     case SSP_L:
-      if(elapsed < output.duration) {
+      if(elapsed < input.duration) {
         copRef = trajectory->getCop(elapsed);
         icpRef = trajectory->getIcp(elapsed);
         footR  = trajectory->getFootR(elapsed);

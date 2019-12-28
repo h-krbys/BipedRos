@@ -48,6 +48,7 @@ class CaptWalk : public SimpleController
   Capt::Config        *config;
   Capt::Grid          *grid;
   Capt::Capturability *capturability;
+  Capt::Monitor       *monitor;
   Capt::Planner       *planner;
   Capt::Trajectory    *trajectory;
   double               omega, h;
@@ -136,10 +137,17 @@ public:
   void footstepCallback( const nav_msgs::Path::ConstPtr &path){
     footstep.clear();
     footstepRef.clear();
+
+    // current support foot
+    Capt::Step step;
+    step.suf = Capt::Foot::FOOT_R;
+    step.pos = footRRef;
+    footstep.push_back(step);
+    footstepRef.push_back(step.pos);
+
+    // footstep
     for(size_t i = 0; i < path->poses.size(); i++) {
       geometry_msgs::Pose pose = path->poses[i].pose;
-
-      Capt::Step step;
       if( ( (int)i % 2 ) == 0) {
         step.suf = Capt::Foot::FOOT_L;
       }else{
@@ -183,13 +191,14 @@ public:
     }
 
     // set capturability parameters
-    model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
-    param         = new Capt::Param("/home/dl-box/study/capturability/data/valkyrie_xy.xml");
-    config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
+    model         = new Capt::Model("/home/kuribayashi/study/capturability/data/valkyrie.xml");
+    param         = new Capt::Param("/home/kuribayashi/study/capturability/data/valkyrie_xy.xml");
+    config        = new Capt::Config("/home/kuribayashi/study/capturability/data/valkyrie_config.xml");
     grid          = new Capt::Grid(param);
     capturability = new Capt::Capturability(grid);
-    capturability->loadBasin("/home/dl-box/study/capturability/build/bin/cpu/Basin.csv");
-    capturability->loadNstep("/home/dl-box/study/capturability/build/bin/cpu/Nstep.csv");
+    capturability->loadBasin("/home/kuribayashi/study/capturability/build/bin/cpu/Basin.csv");
+    capturability->loadNstep("/home/kuribayashi/study/capturability/build/bin/cpu/Nstep.csv");
+    monitor    = new Capt::Monitor(model, grid, capturability);
     planner    = new Capt::Planner(model, param, config, grid, capturability);
     trajectory = new Capt::Trajectory(model);
 
@@ -233,9 +242,14 @@ public:
       state.lfoot    = footL;
       state.s_suf    = Capt::Foot::FOOT_R;
       state.elapsed  = 0.0;
-      planner->set(state);
-      planner->plan();
-      input = planner->get();
+
+      if(monitor->check(state, footstep) ) {
+        input = monitor->get();
+      }else{
+        planner->set(state);
+        planner->plan();
+        input = planner->get();
+      }
 
       trajectory->set(input, Capt::Foot::FOOT_R);
       copRef = trajectory->getCop(elapsed);
@@ -262,9 +276,14 @@ public:
       state.lfoot    = footL;
       state.s_suf    = Capt::Foot::FOOT_L;
       state.elapsed  = 0.0;
-      planner->set(state);
-      planner->plan();
-      input = planner->get();
+
+      if(monitor->check(state, footstep) ) {
+        input = monitor->get();
+      }else{
+        planner->set(state);
+        planner->plan();
+        input = planner->get();
+      }
 
       trajectory->set(input, Capt::Foot::FOOT_L);
       copRef = trajectory->getCop(elapsed);

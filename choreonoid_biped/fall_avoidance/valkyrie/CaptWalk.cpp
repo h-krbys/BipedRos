@@ -141,7 +141,7 @@ public:
     // current support foot
     Capt::Step step;
     step.suf = Capt::Foot::FOOT_R;
-    step.pos = footRRef;
+    step.pos = footR;
     footstep.push_back(step);
     footstepRef.push_back(step.pos);
 
@@ -230,11 +230,12 @@ public:
       }
       break;
     case WAIT:
-      if(t > 3.0) {
+      if(t > 2.0) {
         phase = DSP_LR;
       }
       break;
     case DSP_LR:
+      printf("DSP_LR\n");
       elapsed        = 0.0;
       state.footstep = footstep;
       state.icp      = icp;
@@ -242,14 +243,20 @@ public:
       state.lfoot    = footL;
       state.s_suf    = Capt::Foot::FOOT_R;
       state.elapsed  = 0.0;
+      printf("icp      %1.3lf, %1.3lf, %1.3lf\n", icp.x(), icp.y(), icp.z() );
+      printf("footR    %1.3lf, %1.3lf, %1.3lf\n", footR.x(), footR.y(), footR.z() );
+      printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
+      printf("elapsed  %1.3lf\n", elapsed );
 
-      if(monitor->check(state, footstep) ) {
-        input = monitor->get();
-      }else{
-        planner->set(state);
-        planner->plan();
-        input = planner->get();
-      }
+      // if(monitor->check(state, footstep) ) {
+      // input = monitor->get();
+      // printf("safe\n");
+      // }else{
+      planner->set(state);
+      planner->plan();
+      input = planner->get();
+      // printf("unsafe\n");
+      // }
 
       trajectory->set(input, Capt::Foot::FOOT_R);
       copRef = trajectory->getCop(elapsed);
@@ -259,16 +266,16 @@ public:
       elapsed = 0.0;
       break;
     case SSP_R:
-      if(elapsed < input.duration) {
-        copRef = trajectory->getCop(elapsed);
-        icpRef = trajectory->getIcp(elapsed);
-        footR  = trajectory->getFootR(elapsed);
-        footL  = trajectory->getFootL(elapsed);
-      }else{
+      copRef = trajectory->getCop(elapsed);
+      icpRef = trajectory->getIcp(elapsed);
+      footR  = trajectory->getFootR(elapsed);
+      footL  = trajectory->getFootL(elapsed);
+      if(elapsed > input.duration) {
         phase = DSP_RL;
       }
       break;
     case DSP_RL:
+      printf("DSP_RL\n");
       elapsed        = 0.0;
       state.footstep = footstep;
       state.icp      = icp;
@@ -276,14 +283,20 @@ public:
       state.lfoot    = footL;
       state.s_suf    = Capt::Foot::FOOT_L;
       state.elapsed  = 0.0;
+      printf("icp      %1.3lf, %1.3lf, %1.3lf\n", icp.x(), icp.y(), icp.z() );
+      printf("footR    %1.3lf, %1.3lf, %1.3lf\n", footR.x(), footR.y(), footR.z() );
+      printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
+      printf("elapsed  %1.3lf\n", elapsed );
 
-      if(monitor->check(state, footstep) ) {
-        input = monitor->get();
-      }else{
-        planner->set(state);
-        planner->plan();
-        input = planner->get();
-      }
+      // if(monitor->check(state, footstep) ) {
+      // input = monitor->get();
+      // printf("safe\n");
+      // }else{
+      planner->set(state);
+      planner->plan();
+      input = planner->get();
+      // printf("unsafe\n");
+      // }
 
       trajectory->set(input, Capt::Foot::FOOT_L);
       copRef = trajectory->getCop(elapsed);

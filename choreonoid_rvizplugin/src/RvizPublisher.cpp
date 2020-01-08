@@ -255,17 +255,20 @@ void RvizPublisher::setIcp(Vector3 icp){
 }
 
 void RvizPublisher::setFootstepRef(std::vector<Vector3> footstepRef){
-  e_footstepRef     = true;
+  e_footstepRef = true;
+  this->footstepRef.clear();
   this->footstepRef = footstepRef;
 }
 
 void RvizPublisher::setFootstepR(std::vector<Vector3> footstepR){
-  e_footstepR     = true;
+  e_footstepR = true;
+  this->footstepR.clear();
   this->footstepR = footstepR;
 }
 
 void RvizPublisher::setFootstepL(std::vector<Vector3> footstepL){
-  e_footstepL     = true;
+  e_footstepL = true;
+  this->footstepL.clear();
   this->footstepL = footstepL;
 }
 

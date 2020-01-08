@@ -191,13 +191,13 @@ public:
     }
 
     // set capturability parameters
-    model         = new Capt::Model("/home/kuribayashi/study/capturability/data/valkyrie.xml");
-    param         = new Capt::Param("/home/kuribayashi/study/capturability/data/valkyrie_xy.xml");
-    config        = new Capt::Config("/home/kuribayashi/study/capturability/data/valkyrie_config.xml");
+    model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
+    param         = new Capt::Param("/home/dl-box/study/capturability/data/valkyrie_xy.xml");
+    config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
     grid          = new Capt::Grid(param);
     capturability = new Capt::Capturability(grid);
-    capturability->loadBasin("/home/kuribayashi/study/capturability/build/bin/cpu/Basin.csv");
-    capturability->loadNstep("/home/kuribayashi/study/capturability/build/bin/cpu/Nstep.csv");
+    capturability->loadBasin("/home/dl-box/study/capturability/build/bin/cpu/Basin.csv");
+    capturability->loadNstep("/home/dl-box/study/capturability/build/bin/cpu/Nstep.csv");
     monitor    = new Capt::Monitor(model, grid, capturability);
     planner    = new Capt::Planner(model, param, config, grid, capturability);
     trajectory = new Capt::Trajectory(model);
@@ -225,7 +225,7 @@ public:
       init();
       if(t > 1.0) {
         startPublish(Vector3(0, 0, 0) );
-        goalPublish(Vector3(3, 0, 0) );
+        goalPublish(Vector3(2, 0, 0) );
         phase = WAIT;
       }
       break;
@@ -248,15 +248,15 @@ public:
       printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
       printf("elapsed  %1.3lf\n", elapsed );
 
-      // if(monitor->check(state, footstep) ) {
-      // input = monitor->get();
-      // printf("safe\n");
-      // }else{
-      planner->set(state);
-      planner->plan();
-      input = planner->get();
-      // printf("unsafe\n");
-      // }
+      if(monitor->check(state, footstep) ) {
+        input = monitor->get();
+        printf("safe\n");
+      }else{
+        // planner->set(state);
+        // planner->plan();
+        // input = planner->get();
+        printf("unsafe\n");
+      }
 
       trajectory->set(input, Capt::Foot::FOOT_R);
       copRef = trajectory->getCop(elapsed);
@@ -288,15 +288,15 @@ public:
       printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
       printf("elapsed  %1.3lf\n", elapsed );
 
-      // if(monitor->check(state, footstep) ) {
-      // input = monitor->get();
-      // printf("safe\n");
-      // }else{
-      planner->set(state);
-      planner->plan();
-      input = planner->get();
-      // printf("unsafe\n");
-      // }
+      if(monitor->check(state, footstep) ) {
+        input = monitor->get();
+        printf("safe\n");
+      }else{
+        // planner->set(state);
+        // planner->plan();
+        // input = planner->get();
+        printf("unsafe\n");
+      }
 
       trajectory->set(input, Capt::Foot::FOOT_L);
       copRef = trajectory->getCop(elapsed);
@@ -306,12 +306,11 @@ public:
       phase   = SSP_L;
       break;
     case SSP_L:
-      if(elapsed < input.duration) {
-        copRef = trajectory->getCop(elapsed);
-        icpRef = trajectory->getIcp(elapsed);
-        footR  = trajectory->getFootR(elapsed);
-        footL  = trajectory->getFootL(elapsed);
-      }else{
+      copRef = trajectory->getCop(elapsed);
+      icpRef = trajectory->getIcp(elapsed);
+      footR  = trajectory->getFootR(elapsed);
+      footL  = trajectory->getFootL(elapsed);
+      if(elapsed > input.duration) {
         phase = DSP_LR;
       }
       break;
@@ -341,7 +340,7 @@ public:
     // if( ( (int)( t * 1000 ) ) % ( 1000 )  == 0) {
     //   Vector3 center = ( footR + footL ) / 2;
     //   startPublish(Vector3(center.x(), center.y(), 0.0 ) );
-    //   goalPublish(Vector3(3, 0, 0) );
+    //   goalPublish(Vector3(2, 0, 0) );
     // }
 
     t       += dt;

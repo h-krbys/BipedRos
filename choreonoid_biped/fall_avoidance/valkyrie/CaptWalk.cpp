@@ -129,8 +129,8 @@ public:
   void joyCallback(const sensor_msgs::Joy::ConstPtr &joy){
     // force.x() = 100 * ( joy->buttons[13] - joy->buttons[14] );
     // force.y() = 100 * ( joy->buttons[15] - joy->buttons[16] );
-    force.x() = 100 * joy->axes[7];
-    force.y() = 100 * joy->axes[6];
+    force.x() = 200 * joy->axes[7];
+    force.y() = 200 * joy->axes[6];
     force.z() = 0.0;
   }
 
@@ -248,15 +248,15 @@ public:
       printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
       printf("elapsed  %1.3lf\n", elapsed );
 
-      if(monitor->check(state, footstep) ) {
-        input = monitor->get();
-        printf("safe\n");
-      }else{
-        // planner->set(state);
-        // planner->plan();
-        // input = planner->get();
-        printf("unsafe\n");
-      }
+      // if(monitor->check(state, footstep) ) {
+      //   input = monitor->get();
+      //   printf("safe\n");
+      // }else{
+      planner->set(state);
+      planner->plan();
+      input = planner->get();
+      //   printf("unsafe\n");
+      // }
 
       trajectory->set(input, Capt::Foot::FOOT_R);
       copRef = trajectory->getCop(elapsed);
@@ -270,8 +270,9 @@ public:
       icpRef = trajectory->getIcp(elapsed);
       footR  = trajectory->getFootR(elapsed);
       footL  = trajectory->getFootL(elapsed);
-      if(elapsed > input.duration) {
+      if(elapsed > input.elapsed + input.duration) {
         phase = DSP_RL;
+        // phase = STOP;
       }
       break;
     case DSP_RL:
@@ -288,15 +289,15 @@ public:
       printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
       printf("elapsed  %1.3lf\n", elapsed );
 
-      if(monitor->check(state, footstep) ) {
-        input = monitor->get();
-        printf("safe\n");
-      }else{
-        // planner->set(state);
-        // planner->plan();
-        // input = planner->get();
-        printf("unsafe\n");
-      }
+      // if(monitor->check(state, footstep) ) {
+      //   input = monitor->get();
+      //   printf("safe\n");
+      // }else{
+      planner->set(state);
+      planner->plan();
+      input = planner->get();
+      //   printf("unsafe\n");
+      // }
 
       trajectory->set(input, Capt::Foot::FOOT_L);
       copRef = trajectory->getCop(elapsed);
@@ -314,12 +315,43 @@ public:
         phase = DSP_LR;
       }
       break;
+    case STOP:
+      copRef = icpRef;
+      break;
     default:
       break;
     }
 
     icpTracker->set(copRef, icpRef, icp);
     cop = icpTracker->getCopMod();
+    if(phase == DSP_LR || phase == SSP_R) {
+      if(cop.x() > 0.125 + footR.x() ) {
+        cop.x() = 0.125 + footR.x();
+      }
+      if(cop.x() < -0.125 + footR.x() ) {
+        cop.x() = -0.125 + footR.x();
+      }
+      if(cop.y() > 0.075 + footR.y() ) {
+        cop.y() = 0.075 + footR.y();
+      }
+      if(cop.y() < -0.075 + footR.y() ) {
+        cop.y() = -0.075 + footR.y();
+      }
+    }
+    if(phase == DSP_RL || phase == SSP_L) {
+      if(cop.x() > 0.125 + footL.x() ) {
+        cop.x() = 0.125 + footL.x();
+      }
+      if(cop.x() < -0.125 + footL.x() ) {
+        cop.x() = -0.125 + footL.x();
+      }
+      if(cop.y() > 0.075 + footL.y() ) {
+        cop.y() = 0.075 + footL.y();
+      }
+      if(cop.y() < -0.075 + footL.y() ) {
+        cop.y() = -0.075 + footL.y();
+      }
+    }
 
     step();
 

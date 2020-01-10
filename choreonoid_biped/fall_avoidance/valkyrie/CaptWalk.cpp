@@ -52,6 +52,7 @@ class CaptWalk : public SimpleController
   Capt::Planner       *planner;
   Capt::Trajectory    *trajectory;
   double               omega, h;
+  Capt::Foot           supportFoot;
 
   // biped control
   IcpTracker *icpTracker;
@@ -235,6 +236,7 @@ public:
       }
       break;
     case DSP_LR:
+      supportFoot = Capt::Foot::FOOT_R;
       printf("DSP_LR\n");
       elapsed        = 0.0;
       state.footstep = footstep;
@@ -243,18 +245,18 @@ public:
       state.lfoot    = footL;
       state.s_suf    = Capt::Foot::FOOT_R;
       state.elapsed  = 0.0;
-      printf("icp      %1.3lf, %1.3lf, %1.3lf\n", icp.x(), icp.y(), icp.z() );
-      printf("footR    %1.3lf, %1.3lf, %1.3lf\n", footR.x(), footR.y(), footR.z() );
-      printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
-      printf("elapsed  %1.3lf\n", elapsed );
+      // printf("icp      %1.3lf, %1.3lf, %1.3lf\n", icp.x(), icp.y(), icp.z() );
+      // printf("footR    %1.3lf, %1.3lf, %1.3lf\n", footR.x(), footR.y(), footR.z() );
+      // printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
+      // printf("elapsed  %1.3lf\n", elapsed );
 
-      // if(monitor->check(state, footstep) ) {
-      //   input = monitor->get();
-      //   printf("safe\n");
-      // }else{
       planner->set(state);
-      planner->plan();
-      input = planner->get();
+      if(planner->plan() ) {
+        input = planner->get();
+      }else{
+        phase = STOP;
+        break;
+      }
       //   printf("unsafe\n");
       // }
 
@@ -276,6 +278,7 @@ public:
       }
       break;
     case DSP_RL:
+      supportFoot = Capt::Foot::FOOT_L;
       printf("DSP_RL\n");
       elapsed        = 0.0;
       state.footstep = footstep;
@@ -284,20 +287,18 @@ public:
       state.lfoot    = footL;
       state.s_suf    = Capt::Foot::FOOT_L;
       state.elapsed  = 0.0;
-      printf("icp      %1.3lf, %1.3lf, %1.3lf\n", icp.x(), icp.y(), icp.z() );
-      printf("footR    %1.3lf, %1.3lf, %1.3lf\n", footR.x(), footR.y(), footR.z() );
-      printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
-      printf("elapsed  %1.3lf\n", elapsed );
+      // printf("icp      %1.3lf, %1.3lf, %1.3lf\n", icp.x(), icp.y(), icp.z() );
+      // printf("footR    %1.3lf, %1.3lf, %1.3lf\n", footR.x(), footR.y(), footR.z() );
+      // printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
+      // printf("elapsed  %1.3lf\n", elapsed );
 
-      // if(monitor->check(state, footstep) ) {
-      //   input = monitor->get();
-      //   printf("safe\n");
-      // }else{
       planner->set(state);
-      planner->plan();
-      input = planner->get();
-      //   printf("unsafe\n");
-      // }
+      if(planner->plan() ) {
+        input = planner->get();
+      }else{
+        phase = STOP;
+        break;
+      }
 
       trajectory->set(input, Capt::Foot::FOOT_L);
       copRef = trajectory->getCop(elapsed);
@@ -316,7 +317,7 @@ public:
       }
       break;
     case STOP:
-      copRef = icpRef;
+      copRef = icp;
       break;
     default:
       break;
@@ -324,7 +325,7 @@ public:
 
     icpTracker->set(copRef, icpRef, icp);
     cop = icpTracker->getCopMod();
-    if(phase == DSP_LR || phase == SSP_R) {
+    if(supportFoot == Capt::Foot::FOOT_R) {
       if(cop.x() > 0.125 + footR.x() ) {
         cop.x() = 0.125 + footR.x();
       }
@@ -338,7 +339,7 @@ public:
         cop.y() = -0.075 + footR.y();
       }
     }
-    if(phase == DSP_RL || phase == SSP_L) {
+    if(supportFoot == Capt::Foot::FOOT_L) {
       if(cop.x() > 0.125 + footL.x() ) {
         cop.x() = 0.125 + footL.x();
       }

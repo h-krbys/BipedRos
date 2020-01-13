@@ -441,7 +441,7 @@ void RvizPublisher::publishFootRRef(){
   marker.color.r       = 1.0;
   marker.color.g       = 1.0;
   marker.color.b       = 1.0;
-  marker.color.a       = 0.5;
+  marker.color.a       = 1.0;
 
   pubFootRRef.publish(marker);
 }
@@ -478,7 +478,7 @@ void RvizPublisher::publishFootLRef(){
   marker.color.r       = 1.0;
   marker.color.g       = 1.0;
   marker.color.b       = 1.0;
-  marker.color.a       = 0.5;
+  marker.color.a       = 1.0;
 
   pubFootLRef.publish(marker);
 }

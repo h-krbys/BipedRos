@@ -161,6 +161,8 @@ public:
       footstep.push_back(step);
       footstepRef.push_back(step.pos);
     }
+    footstep.pop_back();
+    footstepRef.pop_back();
   }
 
   virtual bool start() override

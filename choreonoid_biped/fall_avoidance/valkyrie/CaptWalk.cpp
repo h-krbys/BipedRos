@@ -59,6 +59,9 @@ class CaptWalk : public SimpleController
   ComTracker *comTracker;
   Kinematics *kinematics;
 
+  // capture region
+  std::vector<CaptData> gridMap;
+
   // parameters
   // global planner
   Capt::Footstep footstep;
@@ -97,6 +100,16 @@ public:
     comAcc.z() = 0.0;
     icp        = com + comVel / omega;
     icp.z()    = 0.0;
+  }
+
+  void substitute(std::vector<Capt::CaptData> from, std::vector<CaptData> *to){
+    to->clear();
+    for(size_t i = 0; i < from.size(); i++) {
+      CaptData data;
+      data.pos   = from[i].pos;
+      data.nstep = from[i].nstep;
+      to->push_back(data);
+    }
   }
 
   void startPublish(Vector3 pos){
@@ -211,6 +224,8 @@ public:
     model->read(&omega, "omega");
     model->read(&h, "com_height");
 
+    gridMap.clear();
+
     phase   = INIT;
     t       = 0.0;
     elapsed = 0.0;
@@ -266,6 +281,8 @@ public:
       copRef = trajectory->getCop(elapsed);
       icpRef = trajectory->getIcp(elapsed);
 
+      substitute(planner->getCaptureRegion(), &gridMap);
+
       phase   = SSP_R;
       elapsed = 0.0;
       break;
@@ -305,6 +322,8 @@ public:
       trajectory->set(input, Capt::Foot::FOOT_L);
       copRef = trajectory->getCop(elapsed);
       icpRef = trajectory->getIcp(elapsed);
+
+      substitute(planner->getCaptureRegion(), &gridMap);
 
       elapsed = 0.0;
       phase   = SSP_L;
@@ -370,6 +389,7 @@ public:
     publisher.setIcpRef(icpRef);
     publisher.setIcp(icp);
     publisher.setForce(force);
+    publisher.setGridMap(gridMap);
     publisher.simulation(t);
 
     // if( ( (int)( t * 1000 ) ) % ( 1000 )  == 0) {

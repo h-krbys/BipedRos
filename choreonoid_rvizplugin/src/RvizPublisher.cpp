@@ -63,10 +63,48 @@ void RvizPublisher::initialize(){
   data.clear();
 }
 
+void RvizPublisher::save(){
+  printf("saving ...\n");
+  FILE *fp = fopen("/home/dl-box/simulation.csv", "w");
+  if(fp) {
+    fprintf(fp, "%s,", "time");
+    fprintf(fp, "%s, %s,", "copRef.x", "copRef.y");
+    fprintf(fp, "%s, %s,", "cop.x", "cop.y");
+    fprintf(fp, "%s, %s,", "comRef.x", "comRef.y");
+    fprintf(fp, "%s, %s,", "com.x", "com.y");
+    fprintf(fp, "%s, %s,", "icpRef.x", "icpRef.y");
+    fprintf(fp, "%s, %s,", "icp.x", "icp.y");
+    fprintf(fp, "%s, %s, %s,", "footRRef.x", "footRRef.y", "footRRef.z");
+    fprintf(fp, "%s, %s, %s,", "footR.x", "footR.y", "footR.z");
+    fprintf(fp, "%s, %s, %s,", "footLRef.x", "footLRef.y", "footLRef.z");
+    fprintf(fp, "%s, %s, %s,", "footL.x", "footL.y", "footL.z");
+    fprintf(fp, "%s, %s\n", "force.x", "force.y");
+    for(size_t i = 0; i < data.size(); i++) {
+      fprintf(fp, "%1.4lf,", i * dt);
+      fprintf(fp, "%1.3lf, %1.3lf,", data[i].copRef.x(), data[i].copRef.y() );
+      fprintf(fp, "%1.3lf, %1.3lf,", data[i].cop.x(), data[i].cop.y() );
+      fprintf(fp, "%1.3lf, %1.3lf,", data[i].comRef.x(), data[i].comRef.y() );
+      fprintf(fp, "%1.3lf, %1.3lf,", data[i].com.x(), data[i].com.y() );
+      fprintf(fp, "%1.3lf, %1.3lf,", data[i].icpRef.x(), data[i].icpRef.y() );
+      fprintf(fp, "%1.3lf, %1.3lf,", data[i].icp.x(), data[i].icp.y() );
+      fprintf(fp, "%1.3lf, %1.3lf, %1.3lf,", data[i].footRRef.x(), data[i].footRRef.y(), data[i].footRRef.z() );
+      fprintf(fp, "%1.3lf, %1.3lf, %1.3lf,", data[i].footR.x(), data[i].footR.y(), data[i].footR.z() );
+      fprintf(fp, "%1.3lf, %1.3lf, %1.3lf,", data[i].footLRef.x(), data[i].footLRef.y(), data[i].footLRef.z() );
+      fprintf(fp, "%1.3lf, %1.3lf, %1.3lf,", data[i].footLRef.x(), data[i].footLRef.y(), data[i].footLRef.z() );
+      fprintf(fp, "%1.3lf, %1.3lf\n", data[i].force.x(), data[i].force.y() );
+    }
+    fclose(fp);
+    printf("saved !\n");
+  }else{
+    printf("Error: file couldn't opened.\n");
+  }
+}
+
 bool RvizPublisher::timeChanged(double time){
   if(isSimulation) {
     if(time > dt && !timeBar->isDoingPlayback() ) {
       isSimulation = false;
+      save();
     }
   }else{
     isPlayback = true;

@@ -74,6 +74,8 @@ public:
 
   void initialize();
 
+  void save();
+
   void setTimeStep(double timestep);
 
   void setPose(BodyPtr body);

@@ -17,7 +17,7 @@ footsteps:
 ### foot settings #############################################################
 foot:
   size: {x: 0.25, y: 0.15, z: 0.1}
-  separation: 0.4
+  separation: 0.3
   origin_shift: {x: 0.0, y: 0.0}
   max:
     step: {x: 0.20, y: 0.45, theta: 0.0}

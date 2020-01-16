@@ -48,6 +48,7 @@ class CaptWalk : public SimpleController
   Capt::Config        *config;
   Capt::Grid          *grid;
   Capt::Capturability *capturability;
+  Capt::Generator     *generator;
   Capt::Monitor       *monitor;
   Capt::Planner       *planner;
   Capt::Trajectory    *trajectory;
@@ -152,8 +153,14 @@ public:
     footstep.clear();
     footstepRef.clear();
 
-    // current support foot
     Capt::Step step;
+
+    // initial stance foot
+    step.suf = Capt::Foot::FOOT_L;
+    step.pos = footL;
+    footstep.push_back(step);
+    footstepRef.push_back(step.pos);
+
     step.suf = Capt::Foot::FOOT_R;
     step.pos = footR;
     footstep.push_back(step);
@@ -174,8 +181,25 @@ public:
       footstep.push_back(step);
       footstepRef.push_back(step.pos);
     }
-    footstep.pop_back();
-    footstepRef.pop_back();
+
+    for(size_t i = 0; i < footstep.size(); i++) {
+      printf("%2d \n", (int)i);
+      if( footstep[i].suf == Capt::Foot::FOOT_L) {
+        printf("  suf: L\n");
+      }else{
+        printf("  suf: R\n");
+      }
+      printf("  pos: %1.3lf, %1.3lf\n", footstep[i].pos.x(), footstep[i].pos.y() );
+    }
+
+    generator->calc(&footstep);
+    // footstep.pop_back();
+    // footstepRef.pop_back();
+    // for(size_t i = 0; i < footstep.size(); i++) {
+    //   printf("%d\n", (int)i);
+    //   printf("  cop: %1.3lf, %1.3lf\n", footstep[i].cop.x(), footstep[i].cop.y() );
+    //   printf("  icp: %1.3lf, %1.3lf\n", footstep[i].icp.x(), footstep[i].icp.y() );
+    // }
   }
 
   virtual bool start() override
@@ -214,6 +238,7 @@ public:
     capturability = new Capt::Capturability(grid);
     capturability->loadBasin("/home/dl-box/study/capturability/build/bin/cpu/Basin.csv");
     capturability->loadNstep("/home/dl-box/study/capturability/build/bin/cpu/Nstep.csv");
+    generator  = new Capt::Generator(model);
     monitor    = new Capt::Monitor(model, grid, capturability);
     planner    = new Capt::Planner(model, param, config, grid, capturability);
     trajectory = new Capt::Trajectory(model);

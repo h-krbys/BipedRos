@@ -19,7 +19,7 @@ const double dgain = 0.0;
 namespace {
 
 enum SufPhase {
-  INIT, WAIT, DSP_LR, SSP_R, DSP_RL, SSP_L, STOP
+  INIT, WAIT, DSP, SSP, STOP
 };
 
 }
@@ -274,18 +274,25 @@ public:
       break;
     case WAIT:
       if(t > 2.0) {
-        phase = DSP_LR;
+        phase       = DSP;
+        supportFoot = Capt::Foot::FOOT_L;
       }
       break;
-    case DSP_LR:
-      supportFoot = Capt::Foot::FOOT_R;
-      printf("DSP_LR\n");
+    case DSP:
+      // support foot exchange
+      if(supportFoot == Capt::Foot::FOOT_R) {
+        supportFoot = Capt::Foot::FOOT_L;
+      }else{
+        supportFoot = Capt::Foot::FOOT_R;
+      }
+
+      printf("DSP\n");
       elapsed        = 0.0;
       state.footstep = footstep;
       state.icp      = icp;
       state.rfoot    = footR;
       state.lfoot    = footL;
-      state.s_suf    = Capt::Foot::FOOT_R;
+      state.s_suf    = supportFoot;
       state.elapsed  = 0.0;
       // printf("icp      %1.3lf, %1.3lf, %1.3lf\n", icp.x(), icp.y(), icp.z() );
       // printf("footR    %1.3lf, %1.3lf, %1.3lf\n", footR.x(), footR.y(), footR.z() );
@@ -302,64 +309,23 @@ public:
       //   printf("unsafe\n");
       // }
 
-      trajectory->set(input, Capt::Foot::FOOT_R);
+      trajectory->set(input, supportFoot);
       copRef = trajectory->getCop(elapsed);
       icpRef = trajectory->getIcp(elapsed);
 
       substitute(planner->getCaptureRegion(), &gridMap);
 
-      phase   = SSP_R;
+      phase   = SSP;
       elapsed = 0.0;
       break;
-    case SSP_R:
+    case SSP:
       copRef = trajectory->getCop(elapsed);
       icpRef = trajectory->getIcp(elapsed);
       footR  = trajectory->getFootR(elapsed);
       footL  = trajectory->getFootL(elapsed);
       if(elapsed > input.elapsed + input.duration) {
-        phase = DSP_RL;
+        phase = DSP;
         // phase = STOP;
-      }
-      break;
-    case DSP_RL:
-      supportFoot = Capt::Foot::FOOT_L;
-      printf("DSP_RL\n");
-      elapsed        = 0.0;
-      state.footstep = footstep;
-      state.icp      = icp;
-      state.rfoot    = footR;
-      state.lfoot    = footL;
-      state.s_suf    = Capt::Foot::FOOT_L;
-      state.elapsed  = 0.0;
-      // printf("icp      %1.3lf, %1.3lf, %1.3lf\n", icp.x(), icp.y(), icp.z() );
-      // printf("footR    %1.3lf, %1.3lf, %1.3lf\n", footR.x(), footR.y(), footR.z() );
-      // printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
-      // printf("elapsed  %1.3lf\n", elapsed );
-
-      planner->set(state);
-      if(planner->plan() ) {
-        input = planner->get();
-      }else{
-        phase = STOP;
-        break;
-      }
-
-      trajectory->set(input, Capt::Foot::FOOT_L);
-      copRef = trajectory->getCop(elapsed);
-      icpRef = trajectory->getIcp(elapsed);
-
-      substitute(planner->getCaptureRegion(), &gridMap);
-
-      elapsed = 0.0;
-      phase   = SSP_L;
-      break;
-    case SSP_L:
-      copRef = trajectory->getCop(elapsed);
-      icpRef = trajectory->getIcp(elapsed);
-      footR  = trajectory->getFootR(elapsed);
-      footL  = trajectory->getFootL(elapsed);
-      if(elapsed > input.duration) {
-        phase = DSP_LR;
       }
       break;
     case STOP:

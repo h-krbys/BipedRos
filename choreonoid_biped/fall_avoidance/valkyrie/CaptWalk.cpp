@@ -88,6 +88,17 @@ public:
     footL     = Vector3::Zero();
     footL.y() = +0.2;
     force     = Vector3::Zero();
+
+    cop.x() = 0.046;
+    com.x() = 0.046;
+    icp.x() = 0.046;
+
+    cop.y() = -0.077;
+    com.y() = -0.077;
+    icp.y() = -0.077;
+
+    copRef = cop;
+    icpRef = icp;
   }
 
   void step(){
@@ -279,6 +290,8 @@ public:
       }
       break;
     case DSP:
+      printf("------------------------\n");
+
       // support foot exchange
       if(supportFoot == Capt::Foot::FOOT_R) {
         supportFoot = Capt::Foot::FOOT_L;
@@ -299,21 +312,27 @@ public:
       // printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
       // printf("elapsed  %1.3lf\n", elapsed );
 
-      planner->set(state);
-      if(planner->plan() ) {
-        input = planner->get();
-      }else{
-        phase = STOP;
-        break;
-      }
-      //   printf("unsafe\n");
+      // planner->set(state);
+      // if(planner->plan() ) {
+      //   input = planner->get();
+      // }else{
+      //   phase = STOP;
+      //   break;
       // }
+
+      if(monitor->check(state, footstep) ) {
+        input = monitor->get();
+        printf("safe\n");
+        substitute(monitor->getCaptureRegion(), &gridMap);
+      }else{
+        printf("unsafe\n");
+        substitute(planner->getCaptureRegion(), &gridMap);
+      }
 
       trajectory->set(input, supportFoot);
       copRef = trajectory->getCop(elapsed);
       icpRef = trajectory->getIcp(elapsed);
 
-      substitute(planner->getCaptureRegion(), &gridMap);
 
       phase   = SSP;
       elapsed = 0.0;

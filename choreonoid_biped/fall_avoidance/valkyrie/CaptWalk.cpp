@@ -182,15 +182,15 @@ public:
       footstepRef.push_back(step.pos);
     }
 
-    for(size_t i = 0; i < footstep.size(); i++) {
-      printf("%2d \n", (int)i);
-      if( footstep[i].suf == Capt::Foot::FOOT_L) {
-        printf("  suf: L\n");
-      }else{
-        printf("  suf: R\n");
-      }
-      printf("  pos: %1.3lf, %1.3lf\n", footstep[i].pos.x(), footstep[i].pos.y() );
-    }
+    // for(size_t i = 0; i < footstep.size(); i++) {
+    //   printf("%2d \n", (int)i);
+    //   if( footstep[i].suf == Capt::Foot::FOOT_L) {
+    //     printf("  suf: L\n");
+    //   }else{
+    //     printf("  suf: R\n");
+    //   }
+    //   printf("  pos: %1.3lf, %1.3lf\n", footstep[i].pos.x(), footstep[i].pos.y() );
+    // }
 
     generator->calc(&footstep);
     // footstep.pop_back();

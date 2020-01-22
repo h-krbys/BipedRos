@@ -75,6 +75,9 @@ class CaptWalk : public SimpleController
   Capt::EnhancedState state;
   Capt::EnhancedInput input;
 
+  // loop counter
+  int count;
+
 public:
   void init(){
     cop       = Vector3::Zero();
@@ -336,13 +339,34 @@ public:
 
       phase   = SSP;
       elapsed = 0.0;
+      count   = 0;
+
       break;
     case SSP:
+      count++;
+      if(count % 50 == 0 && input.duration - elapsed > 0.10) {
+        printf("------ SSP ------\n");
+
+        state.icp     = icp;
+        state.rfoot   = footR;
+        state.lfoot   = footL;
+        state.s_suf   = supportFoot;
+        state.elapsed = elapsed;
+
+        if(monitor->check(state, footstep) ) {
+          input = monitor->get();
+          printf("safe\n");
+          substitute(monitor->getCaptureRegion(), &gridMap);
+        }
+        elapsed = input.elapsed;
+        trajectory->set(input, supportFoot);
+      }
+
       copRef = trajectory->getCop(elapsed);
       icpRef = trajectory->getIcp(elapsed);
       footR  = trajectory->getFootR(elapsed);
       footL  = trajectory->getFootL(elapsed);
-      if(elapsed > input.elapsed + input.duration) {
+      if(elapsed > input.duration) {
         phase = DSP;
         // phase = STOP;
       }

@@ -78,6 +78,8 @@ class CaptWalk : public SimpleController
   // loop counter
   int count;
 
+  Capt::Status status;
+
 public:
   void init(){
     cop       = Vector3::Zero();
@@ -322,20 +324,22 @@ public:
       //   phase = STOP;
       //   break;
       // }
-
-      if(monitor->check(state, footstep) ) {
+      status = monitor->check(state, footstep);
+      if(status == Capt::Status::SUCCESS) {
         input = monitor->get();
         printf("safe\n");
-        substitute(monitor->getCaptureRegion(), &gridMap);
-      }else{
+      }else if(status == Capt::Status::FAIL) {
         printf("unsafe\n");
-        substitute(planner->getCaptureRegion(), &gridMap);
+      }else{
+        phase = STOP;
+        break;
       }
+
+      substitute(planner->getCaptureRegion(), &gridMap);
 
       trajectory->set(input, supportFoot);
       copRef = trajectory->getCop(elapsed);
       icpRef = trajectory->getIcp(elapsed);
-
 
       phase   = SSP;
       elapsed = 0.0;
@@ -353,11 +357,15 @@ public:
         state.s_suf   = supportFoot;
         state.elapsed = elapsed;
 
-        if(monitor->check(state, footstep) ) {
+        status = monitor->check(state, footstep);
+        if(status == Capt::Status::SUCCESS ) {
           input = monitor->get();
           printf("safe\n");
           substitute(monitor->getCaptureRegion(), &gridMap);
+        }else{
+          printf("unsafe\n");
         }
+
         elapsed = input.elapsed;
         trajectory->set(input, supportFoot);
       }

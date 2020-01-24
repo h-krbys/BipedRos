@@ -348,7 +348,7 @@ public:
       break;
     case SSP:
       count++;
-      if(count % 50 == 0 && input.duration - elapsed > 0.10) {
+      if(count % 10 == 0 && input.duration - elapsed > 0.10) {
         printf("------ SSP ------\n");
 
         state.icp     = icp;

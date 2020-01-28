@@ -330,7 +330,8 @@ public:
       if(statusMonitor == Capt::Status::SUCCESS) {
         planner->clear();
         input = monitor->get();
-        printf("monitor: success, ");
+        substitute(monitor->getCaptureRegion(), &gridMap);
+        printf("monitor: success\n");
       }else if(statusMonitor == Capt::Status::FAIL) {
         printf("monitor: fail   , ");
       }else{
@@ -338,22 +339,26 @@ public:
         phase = STOP;
         break;
       }
+      // statusMonitor = Capt::Status::FAIL;
 
       // planner
-      // if(statusMonitor == Capt::Status::FAIL) {
-      //   planner->set(state);
-      //   statusPlanner = planner->plan();
-      //   if(statusPlanner == Capt::Status::SUCCESS) {
-      //     printf("planner: success\n");
-      //     input = planner->get();
-      //   }else if(statusPlanner == Capt::Status::FAIL) {
-      //     printf("planner: fail\n");
-      //     phase = STOP;
-      //     break;
-      //   }
-      // }
-
-      substitute(planner->getCaptureRegion(), &gridMap);
+      if(statusMonitor == Capt::Status::FAIL) {
+        planner->set(state);
+        statusPlanner = planner->plan();
+        if(statusPlanner == Capt::Status::SUCCESS) {
+          printf("planner: success\n");
+          input = planner->get();
+          substitute(planner->getCaptureRegion(), &gridMap);
+        }else if(statusPlanner == Capt::Status::FAIL) {
+          printf("planner: fail\n");
+          phase = STOP;
+          break;
+        }else{
+          printf("planner: finish\n");
+          phase = STOP;
+          break;
+        }
+      }
 
       trajectory->set(input, supportFoot);
       copRef = trajectory->getCop(elapsed);
@@ -366,7 +371,7 @@ public:
       break;
     case SSP:
       count++;
-      if(count % 10 == 0 && input.duration - elapsed > 0.10) {
+      if(count % 50 == 0 && input.duration - elapsed > 0.10) {
         printf("------ SSP ------\n");
 
         state.icp     = icp;
@@ -379,7 +384,8 @@ public:
         if(statusMonitor == Capt::Status::SUCCESS) {
           planner->clear();
           input = monitor->get();
-          printf("monitor: success, ");
+          substitute(monitor->getCaptureRegion(), &gridMap);
+          printf("monitor: success\n");
         }else if(statusMonitor == Capt::Status::FAIL) {
           printf("monitor: fail   , ");
         }else{
@@ -387,20 +393,26 @@ public:
           phase = STOP;
           break;
         }
+        // statusMonitor = Capt::Status::FAIL;
 
         // planner
-        // if(statusMonitor == Capt::Status::FAIL) {
-        //   planner->set(state);
-        //   statusPlanner = planner->plan();
-        //   if(statusPlanner == Capt::Status::SUCCESS) {
-        //     printf("planner: success\n");
-        //     input = planner->get();
-        //   }else if(statusPlanner == Capt::Status::FAIL) {
-        //     printf("planner: fail\n");
-        //     phase = STOP;
-        //     break;
-        //   }
-        // }
+        if(statusMonitor == Capt::Status::FAIL) {
+          planner->set(state);
+          statusPlanner = planner->plan();
+          if(statusPlanner == Capt::Status::SUCCESS) {
+            printf("planner: success\n");
+            input = planner->get();
+            substitute(planner->getCaptureRegion(), &gridMap);
+          }else if(statusPlanner == Capt::Status::FAIL) {
+            printf("planner: fail\n");
+            phase = STOP;
+            break;
+          }else{
+            printf("planner: finish\n");
+            phase = STOP;
+            break;
+          }
+        }
 
         elapsed = input.elapsed;
         trajectory->set(input, supportFoot);

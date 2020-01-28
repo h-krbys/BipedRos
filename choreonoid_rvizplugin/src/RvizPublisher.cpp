@@ -691,7 +691,7 @@ void RvizPublisher::publishFootstepR(){
     marker_array.markers[i].type = visualization_msgs::Marker::MESH_RESOURCE;
 
     if(e_footstepR == true) {
-      marker_array.markers[i].action = visualization_msgs::Marker::ADD;
+      marker_array.markers[i].action = visualization_msgs::Marker::MODIFY;
     }else{
       marker_array.markers[i].action = visualization_msgs::Marker::DELETEALL;
     }
@@ -715,8 +715,16 @@ void RvizPublisher::publishFootstepR(){
     marker_array.markers[i].color.a       = 0.5;
   }
 
-  if(e_footstepR == false) {
+  if(num_step == 0) {
+    marker_array.markers.clear();
     marker_array.markers.resize(1);
+    marker_array.markers[0].header.frame_id = "world";
+    marker_array.markers[0].header.stamp    = ros::Time::now();
+    marker_array.markers[0].ns              = "markers";
+    marker_array.markers[0].id              = 0;
+    marker_array.markers[0].lifetime        = ros::Duration();
+
+    marker_array.markers[0].type   = visualization_msgs::Marker::MESH_RESOURCE;
     marker_array.markers[0].action = visualization_msgs::Marker::DELETEALL;
   }
 
@@ -738,9 +746,9 @@ void RvizPublisher::publishFootstepL(){
     marker_array.markers[i].type = visualization_msgs::Marker::MESH_RESOURCE;
 
     if(e_footstepL == true) {
-      marker_array.markers[i].action = visualization_msgs::Marker::ADD;
+      marker_array.markers[i].action = visualization_msgs::Marker::MODIFY;
     }else{
-      marker_array.markers[i].action = visualization_msgs::Marker::DELETE;
+      marker_array.markers[i].action = visualization_msgs::Marker::DELETEALL;
     }
 
     marker_array.markers[i].pose.position.x    = footstepL[i].x();
@@ -762,8 +770,16 @@ void RvizPublisher::publishFootstepL(){
     marker_array.markers[i].color.a       = 0.5;
   }
 
-  if(e_footstepR == false) {
+  if(num_step == 0) {
+    marker_array.markers.clear();
     marker_array.markers.resize(1);
+    marker_array.markers[0].header.frame_id = "world";
+    marker_array.markers[0].header.stamp    = ros::Time::now();
+    marker_array.markers[0].ns              = "markers";
+    marker_array.markers[0].id              = 0;
+    marker_array.markers[0].lifetime        = ros::Duration();
+
+    marker_array.markers[0].type   = visualization_msgs::Marker::MESH_RESOURCE;
     marker_array.markers[0].action = visualization_msgs::Marker::DELETEALL;
   }
 

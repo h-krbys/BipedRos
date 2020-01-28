@@ -78,7 +78,7 @@ class CaptWalk : public SimpleController
   // loop counter
   int count;
 
-  Capt::Status status;
+  Capt::Status statusMonitor, statusPlanner;
 
 public:
   void init(){
@@ -324,16 +324,34 @@ public:
       //   phase = STOP;
       //   break;
       // }
-      status = monitor->check(state, footstep);
-      if(status == Capt::Status::SUCCESS) {
+
+      // monitor
+      statusMonitor = monitor->check(state, footstep);
+      if(statusMonitor == Capt::Status::SUCCESS) {
+        planner->clear();
         input = monitor->get();
-        printf("safe\n");
-      }else if(status == Capt::Status::FAIL) {
-        printf("unsafe\n");
+        printf("monitor: success, ");
+      }else if(statusMonitor == Capt::Status::FAIL) {
+        printf("monitor: fail   , ");
       }else{
+        printf("monitor: finish , ");
         phase = STOP;
         break;
       }
+
+      // planner
+      // if(statusMonitor == Capt::Status::FAIL) {
+      //   planner->set(state);
+      //   statusPlanner = planner->plan();
+      //   if(statusPlanner == Capt::Status::SUCCESS) {
+      //     printf("planner: success\n");
+      //     input = planner->get();
+      //   }else if(statusPlanner == Capt::Status::FAIL) {
+      //     printf("planner: fail\n");
+      //     phase = STOP;
+      //     break;
+      //   }
+      // }
 
       substitute(planner->getCaptureRegion(), &gridMap);
 
@@ -357,14 +375,32 @@ public:
         state.s_suf   = supportFoot;
         state.elapsed = elapsed;
 
-        status = monitor->check(state, footstep);
-        if(status == Capt::Status::SUCCESS ) {
+        statusMonitor = monitor->check(state, footstep);
+        if(statusMonitor == Capt::Status::SUCCESS) {
+          planner->clear();
           input = monitor->get();
-          printf("safe\n");
-          substitute(monitor->getCaptureRegion(), &gridMap);
+          printf("monitor: success, ");
+        }else if(statusMonitor == Capt::Status::FAIL) {
+          printf("monitor: fail   , ");
         }else{
-          printf("unsafe\n");
+          printf("monitor: finish , ");
+          phase = STOP;
+          break;
         }
+
+        // planner
+        // if(statusMonitor == Capt::Status::FAIL) {
+        //   planner->set(state);
+        //   statusPlanner = planner->plan();
+        //   if(statusPlanner == Capt::Status::SUCCESS) {
+        //     printf("planner: success\n");
+        //     input = planner->get();
+        //   }else if(statusPlanner == Capt::Status::FAIL) {
+        //     printf("planner: fail\n");
+        //     phase = STOP;
+        //     break;
+        //   }
+        // }
 
         elapsed = input.elapsed;
         trajectory->set(input, supportFoot);

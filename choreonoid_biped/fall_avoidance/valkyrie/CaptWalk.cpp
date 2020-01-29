@@ -160,8 +160,8 @@ public:
   void joyCallback(const sensor_msgs::Joy::ConstPtr &joy){
     // force.x() = 100 * ( joy->buttons[13] - joy->buttons[14] );
     // force.y() = 100 * ( joy->buttons[15] - joy->buttons[16] );
-    force.x() = 200 * joy->axes[7];
-    force.y() = 200 * joy->axes[6];
+    force.x() = 500 * joy->axes[7];
+    force.y() = 500 * joy->axes[6];
     force.z() = 0.0;
   }
 
@@ -371,7 +371,7 @@ public:
       break;
     case SSP:
       count++;
-      if(count % 50 == 0 && input.duration - elapsed > 0.10) {
+      if(count % 10 == 0 && input.duration - elapsed > 0.10) {
         printf("------ SSP ------\n");
 
         state.icp     = icp;

@@ -160,8 +160,8 @@ public:
   void joyCallback(const sensor_msgs::Joy::ConstPtr &joy){
     // force.x() = 100 * ( joy->buttons[13] - joy->buttons[14] );
     // force.y() = 100 * ( joy->buttons[15] - joy->buttons[16] );
-    force.x() = 500 * joy->axes[7];
-    force.y() = 500 * joy->axes[6];
+    force.x() = 300 * joy->axes[7];
+    force.y() = 300 * joy->axes[6];
     force.z() = 0.0;
   }
 

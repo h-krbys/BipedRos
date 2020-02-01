@@ -897,13 +897,24 @@ void RvizPublisher::publishPendulumRef(){
   marker.type   = visualization_msgs::Marker::LINE_STRIP;
   marker.action = visualization_msgs::Marker::ADD;
 
-  marker.scale.x = lineWidth * 2;
-  marker.scale.y = lineWidth * 2;
-  marker.scale.z = lineWidth * 2;
+  // white
+  // marker.scale.x = lineWidth * 2;
+  // marker.scale.y = lineWidth * 2;
+  // marker.scale.z = lineWidth * 2;
+  //
+  // marker.color.r = 1.0;
+  // marker.color.g = 1.0;
+  // marker.color.b = 1.0;
+  // marker.color.a = 0.5;
 
-  marker.color.r = 1.0;
-  marker.color.g = 1.0;
-  marker.color.b = 1.0;
+  // black
+  marker.scale.x = lineWidth;
+  marker.scale.y = lineWidth;
+  marker.scale.z = lineWidth;
+
+  marker.color.r = 0.0;
+  marker.color.g = 0.0;
+  marker.color.b = 0.0;
   marker.color.a = 0.5;
 
   if(e_copRef && e_comRef) {
@@ -932,13 +943,24 @@ void RvizPublisher::publishPendulum(){
   marker.type   = visualization_msgs::Marker::LINE_STRIP;
   marker.action = visualization_msgs::Marker::ADD;
 
-  marker.scale.x = lineWidth * 2;
-  marker.scale.y = lineWidth * 2;
-  marker.scale.z = lineWidth * 2;
+  // white
+  // marker.scale.x = lineWidth * 2;
+  // marker.scale.y = lineWidth * 2;
+  // marker.scale.z = lineWidth * 2;
+  //
+  // marker.color.r = 1.0;
+  // marker.color.g = 1.0;
+  // marker.color.b = 1.0;
+  // marker.color.a = 0.5;
 
-  marker.color.r = 1.0;
-  marker.color.g = 1.0;
-  marker.color.b = 1.0;
+  // black
+  marker.scale.x = lineWidth;
+  marker.scale.y = lineWidth;
+  marker.scale.z = lineWidth;
+
+  marker.color.r = 0.0;
+  marker.color.g = 0.0;
+  marker.color.b = 0.0;
   marker.color.a = 1.0;
 
   if(e_cop && e_com) {

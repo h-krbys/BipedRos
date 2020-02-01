@@ -80,6 +80,11 @@ class CaptWalk : public SimpleController
 
   Capt::Status statusMonitor, statusPlanner;
 
+  // timer
+  Capt::Timer *timer;
+
+  FILE *fpTime;
+
 public:
   void init(){
     cop       = Vector3::Zero();
@@ -262,6 +267,11 @@ public:
     // biped control
     icpTracker = new IcpTracker(model, config);
 
+    // timer
+    timer  = new Capt::Timer();
+    fpTime = fopen("/home/dl-box/computation.csv", "w");
+    fprintf(fpTime, "time, computation\n");
+
     model->read(&omega, "omega");
     model->read(&h, "com_height");
 
@@ -295,7 +305,7 @@ public:
       }
       break;
     case DSP:
-      printf("------------------------\n");
+      // printf("------------------------\n");
 
       // support foot exchange
       if(supportFoot == Capt::Foot::FOOT_R) {
@@ -325,17 +335,18 @@ public:
       //   break;
       // }
 
+      timer->start();
       // monitor
       statusMonitor = monitor->check(state, footstep);
       if(statusMonitor == Capt::Status::SUCCESS) {
         planner->clear();
         input = monitor->get();
         substitute(monitor->getCaptureRegion(), &gridMap);
-        printf("monitor: success\n");
+        // printf("monitor: success\n");
       }else if(statusMonitor == Capt::Status::FAIL) {
-        printf("monitor: fail   , ");
+        // printf("monitor: fail   , ");
       }else{
-        printf("monitor: finish , ");
+        // printf("monitor: finish , ");
         phase = STOP;
         break;
       }
@@ -346,19 +357,22 @@ public:
         planner->set(state);
         statusPlanner = planner->plan();
         if(statusPlanner == Capt::Status::SUCCESS) {
-          printf("planner: success\n");
+          // printf("planner: success\n");
           input = planner->get();
           substitute(planner->getCaptureRegion(), &gridMap);
         }else if(statusPlanner == Capt::Status::FAIL) {
-          printf("planner: fail\n");
+          // printf("planner: fail\n");
           phase = STOP;
           break;
         }else{
-          printf("planner: finish\n");
+          // printf("planner: finish\n");
           phase = STOP;
           break;
         }
       }
+      timer->end();
+      timer->print();
+      fprintf(fpTime, "%lf, %lf\n", t, timer->get() );
 
       trajectory->set(input, supportFoot);
       copRef = trajectory->getCop(elapsed);
@@ -372,7 +386,7 @@ public:
     case SSP:
       count++;
       if(count % 10 == 0 && input.duration - elapsed > 0.10) {
-        printf("------ SSP ------\n");
+        // printf("------ SSP ------\n");
 
         state.icp     = icp;
         state.rfoot   = footR;
@@ -380,16 +394,17 @@ public:
         state.s_suf   = supportFoot;
         state.elapsed = elapsed;
 
+        timer->start();
         statusMonitor = monitor->check(state, footstep);
         if(statusMonitor == Capt::Status::SUCCESS) {
           planner->clear();
           input = monitor->get();
           substitute(monitor->getCaptureRegion(), &gridMap);
-          printf("monitor: success\n");
+          // printf("monitor: success\n");
         }else if(statusMonitor == Capt::Status::FAIL) {
-          printf("monitor: fail   , ");
+          // printf("monitor: fail   , ");
         }else{
-          printf("monitor: finish , ");
+          // printf("monitor: finish , ");
           phase = STOP;
           break;
         }
@@ -400,19 +415,22 @@ public:
           planner->set(state);
           statusPlanner = planner->plan();
           if(statusPlanner == Capt::Status::SUCCESS) {
-            printf("planner: success\n");
+            // printf("planner: success\n");
             input = planner->get();
             substitute(planner->getCaptureRegion(), &gridMap);
           }else if(statusPlanner == Capt::Status::FAIL) {
-            printf("planner: fail\n");
+            // printf("planner: fail\n");
             phase = STOP;
             break;
           }else{
-            printf("planner: finish\n");
+            // printf("planner: finish\n");
             phase = STOP;
             break;
           }
         }
+        timer->end();
+        timer->print();
+        fprintf(fpTime, "%lf, %lf\n", t, timer->get() );
 
         elapsed = input.elapsed;
         trajectory->set(input, supportFoot);
@@ -428,6 +446,10 @@ public:
       }
       break;
     case STOP:
+      if(fpTime) {
+        fclose(fpTime);
+        fpTime = NULL;
+      }
       copRef = icp;
       break;
     default:

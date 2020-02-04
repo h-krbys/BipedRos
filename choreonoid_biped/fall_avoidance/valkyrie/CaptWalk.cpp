@@ -225,9 +225,9 @@ public:
 
   virtual bool start() override
   {
-    startPublisher     = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 1);
-    goalPublisher      = nh.advertise<geometry_msgs::PoseStamped>("/goal", 1);
-    joySubscriber      = nh.subscribe<sensor_msgs::Joy>("/joy", 10, &CaptWalk::joyCallback, this);
+    startPublisher = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 1);
+    goalPublisher  = nh.advertise<geometry_msgs::PoseStamped>("/goal", 1);
+    // joySubscriber      = nh.subscribe<sensor_msgs::Joy>("/joy", 10, &CaptWalk::joyCallback, this);
     footstepSubscriber = nh.subscribe<nav_msgs::Path>("/footstep_planner/path", 10, &CaptWalk::footstepCallback, this);
     return true;
   }
@@ -386,6 +386,7 @@ public:
     case SSP:
       count++;
       if(count % 10 == 0 && input.duration - elapsed > 0.10) {
+        printf("-------------\n");
         // printf("------ SSP ------\n");
 
         state.icp     = icp;
@@ -413,17 +414,18 @@ public:
         // planner
         if(statusMonitor == Capt::Status::FAIL) {
           planner->set(state);
+          printf("start planner\n");
           statusPlanner = planner->plan();
           if(statusPlanner == Capt::Status::SUCCESS) {
-            // printf("planner: success\n");
             input = planner->get();
             substitute(planner->getCaptureRegion(), &gridMap);
+            printf("planner: success\n");
           }else if(statusPlanner == Capt::Status::FAIL) {
-            // printf("planner: fail\n");
+            printf("planner: fail\n");
             phase = STOP;
             break;
           }else{
-            // printf("planner: finish\n");
+            printf("planner: finish\n");
             phase = STOP;
             break;
           }
@@ -486,6 +488,46 @@ public:
         cop.y() = -0.075 + footL.y();
       }
     }
+
+    double duration = 0.01;
+    if(5.5 <= t && t <= 6.3) {
+      // simulation 1
+      // force.x() = -2000;
+      // simulation 2
+      // force.y() = 5000;
+      // simulation 3
+      // force.x() = -2000;
+      // force.y() =  2000;
+      // simulation 4, 5
+      // force.x() = -3000;
+      // force.y() =  500;
+      // simulation 6
+      // force.x() = 300;
+      force.x() = 100;
+      force.y() = 50;
+    }else{
+      force.x() = 0;
+      force.y() = 0;
+    }
+    // if(5.5 <= t && t <= 6.5) {
+    //   // simulation 1
+    //   // force.x() = -2000;
+    //   // simulation 2
+    //   // force.y() = 5000;
+    //   // simulation 3
+    //   // force.x() = -2000;
+    //   // force.y() =  2000;
+    //   // simulation 4, 5
+    //   // force.x() = -3000;
+    //   // force.y() =  500;
+    //   // simulation 6
+    //   // force.x() = 300;
+    //   force.x() = 50;
+    //   force.y() = 50;
+    // }else{
+    //   force.x() = 0;
+    //   force.y() = 0;
+    // }
 
     step();
 

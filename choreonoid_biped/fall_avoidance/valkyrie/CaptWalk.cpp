@@ -489,22 +489,24 @@ public:
       }
     }
 
-    double duration = 0.01;
-    if(5.5 <= t && t <= 6.3) {
+    // double duration = 0.01;
+    if(5.5 <= t && t <= 6) {
       // simulation 1
       // force.x() = -2000;
       // simulation 2
       // force.y() = 5000;
       // simulation 3
-      // force.x() = -2000;
-      // force.y() =  2000;
-      // simulation 4, 5
-      // force.x() = -3000;
-      // force.y() =  500;
-      // simulation 6
-      // force.x() = 300;
-      force.x() = 100;
-      force.y() = 50;
+      //   // force.x() = -2000;
+      //   // force.y() =  2000;
+      //   // simulation 4, 5
+      //   // force.x() = -3000;
+      //   // force.y() =  500;
+      //   // simulation 6
+      //   // force.x() = 300;
+      //   // force.x() = 150;
+      //   // force.y() = -60
+      force.x() = -200 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
+      force.y() = 100 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
     }else{
       force.x() = 0;
       force.y() = 0;

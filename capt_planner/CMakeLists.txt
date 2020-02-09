@@ -69,5 +69,5 @@ function(add_controller)
   )
 endfunction()
 
-add_controller(GlobalPlanner src/GlobalPlanner.cpp)
-add_controller(LocalPlanner  src/LocalPlanner.cpp)
+# add_controller(GlobalPlanner src/GlobalPlanner.cpp)
+# add_controller(LocalPlanner  src/LocalPlanner.cpp)

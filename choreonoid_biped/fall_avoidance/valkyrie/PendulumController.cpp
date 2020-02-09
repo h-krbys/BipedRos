@@ -39,13 +39,9 @@ public:
     footL   = Vector3::Zero();
     force   = Vector3::Zero();
 
-    cop.x() = 0.046;
-    com.x() = 0.046;
-    icp.x() = 0.046;
-
-    cop.y() = -0.077;
-    com.y() = -0.077;
-    icp.y() = -0.077;
+    cop.x()    = 0;
+    com.x()    = 0;
+    comVel.x() = 0.1;
 
     copRef = cop;
     icpRef = icp;
@@ -75,6 +71,8 @@ public:
     h     = 1.0;
     omega = sqrt(9.80665 / h);
 
+    init();
+
     return true;
   }
 
@@ -91,7 +89,9 @@ public:
       break;
     }
 
-    step();
+    if(phase > 0) {
+      step();
+    }
 
     publisher.setFootRRef(footR);
     publisher.setFootLRef(footL);

@@ -1,4 +1,5 @@
 #include <cnoid/SimpleController>
+#include "Capt.h"
 #include "RvizPublisher.h"
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
@@ -16,6 +17,8 @@ class PendulumController : public SimpleController
   std::vector<double> qold;
   int                 phase;
 
+  Capt::Cycloid cycloid;
+
   // rviz
   RvizPublisher publisher;
 
@@ -26,6 +29,8 @@ class PendulumController : public SimpleController
   Vector3 force;
 
   double h, omega;
+  double stepDuration;
+  double stepWidth;
 
 public:
   void init(){
@@ -39,9 +44,15 @@ public:
     footL   = Vector3::Zero();
     force   = Vector3::Zero();
 
+    footR.y() -= 0.1;
+    footL.y() += 0.1;
+
     cop.x()    = 0;
     com.x()    = 0;
-    comVel.x() = 0.1;
+    comVel.x() = 0.05;
+
+    com.y() = -0.2;
+    cop.y() = -0.2;
 
     copRef = cop;
     icpRef = icp;
@@ -60,32 +71,52 @@ public:
 
   virtual bool initialize(SimpleControllerIO* io) override
   {
+    init();
+
     ioBody = io->body();
     dt     = io->timeStep();
 
-    t     = 0.0;
-    phase = 0;
+    t       = 0.0;
+    elapsed = 0.0;
+    phase   = 0;
 
     publisher.setTimeStep(dt);
 
     h     = 1.0;
     omega = sqrt(9.80665 / h);
 
-    init();
+    stepDuration = 1;
+    // stepWidth    = 0.2;
+    // stepWidth = 0.364;
+    stepWidth = 0.5;
+
+    Vector3 footR_ = footR;
+    footR_.x() += stepWidth;
+    cycloid.set(footR, footR_, stepDuration);
 
     return true;
   }
 
   virtual bool control() override
   {
-
     switch( phase ) {
     case 0:
-      if(t > 1.0) {
-        phase = 1;
+      init();
+      if(elapsed > 1.0) {
+        elapsed = 0.0;
+        phase   = 1;
       }
       break;
     case 1:
+      footR = cycloid.get(elapsed);
+      if(elapsed > 1.0) {
+        cop.x() = footR.x();
+        elapsed = 0.0;
+        phase   = 2;
+      }
+      break;
+    case 2:
+      // cop.x() = icp.x();
       break;
     }
 
@@ -102,7 +133,8 @@ public:
     publisher.setForce(force);
     publisher.simulation(t);
 
-    t += dt;
+    t       += dt;
+    elapsed += dt;
 
     return true;
   }

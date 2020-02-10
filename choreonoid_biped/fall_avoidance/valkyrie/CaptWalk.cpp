@@ -448,6 +448,8 @@ public:
       }
       break;
     case STOP:
+      planner->clear();
+      gridMap.clear();
       if(fpTime) {
         fclose(fpTime);
         fpTime = NULL;
@@ -505,8 +507,8 @@ public:
       //   // force.x() = 300;
       //   // force.x() = 150;
       //   // force.y() = -60
-      force.x() = -200 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
-      force.y() = 100 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
+      force.x() = -200 * 1.5 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
+      force.y() = +100 * 1.5 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
     }else{
       force.x() = 0;
       force.y() = 0;

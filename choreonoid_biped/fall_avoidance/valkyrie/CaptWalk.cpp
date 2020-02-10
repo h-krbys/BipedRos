@@ -40,7 +40,7 @@ class CaptWalk : public SimpleController
 
   // rviz
   RvizPublisher        publisher;
-  std::vector<Vector3> footstepRef;
+  std::vector<Vector3> footstepR, footstepL, footstepRef;
 
   // capturability
   Capt::Model         *model;
@@ -342,6 +342,8 @@ public:
         planner->clear();
         input = monitor->get();
         substitute(monitor->getCaptureRegion(), &gridMap);
+        footstepR = monitor->getFootstepR();
+        footstepL = monitor->getFootstepL();
         // printf("monitor: success\n");
       }else if(statusMonitor == Capt::Status::FAIL) {
         // printf("monitor: fail   , ");
@@ -360,6 +362,8 @@ public:
           // printf("planner: success\n");
           input = planner->get();
           substitute(planner->getCaptureRegion(), &gridMap);
+          footstepR = planner->getFootstepR();
+          footstepL = planner->getFootstepL();
         }else if(statusPlanner == Capt::Status::FAIL) {
           // printf("planner: fail\n");
           phase = STOP;
@@ -401,6 +405,8 @@ public:
           planner->clear();
           input = monitor->get();
           substitute(monitor->getCaptureRegion(), &gridMap);
+          footstepR = monitor->getFootstepR();
+          footstepL = monitor->getFootstepL();
           // printf("monitor: success\n");
         }else if(statusMonitor == Capt::Status::FAIL) {
           // printf("monitor: fail   , ");
@@ -419,6 +425,8 @@ public:
           if(statusPlanner == Capt::Status::SUCCESS) {
             input = planner->get();
             substitute(planner->getCaptureRegion(), &gridMap);
+            footstepR = planner->getFootstepR();
+            footstepL = planner->getFootstepL();
             printf("planner: success\n");
           }else if(statusPlanner == Capt::Status::FAIL) {
             printf("planner: fail\n");
@@ -448,6 +456,8 @@ public:
       }
       break;
     case STOP:
+      footstepR.clear();
+      footstepL.clear();
       planner->clear();
       gridMap.clear();
       if(fpTime) {
@@ -536,8 +546,8 @@ public:
     step();
 
     publisher.setFootstepRef(footstepRef);
-    publisher.setFootstepR(planner->getFootstepR() );
-    publisher.setFootstepL(planner->getFootstepL() );
+    publisher.setFootstepR(footstepR);
+    publisher.setFootstepL(footstepL);
     publisher.setFootRRef(footR);
     publisher.setFootLRef(footL);
 

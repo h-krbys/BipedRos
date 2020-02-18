@@ -456,6 +456,7 @@ public:
       }
       break;
     case STOP:
+      supportFoot = Capt::Foot::FOOT_NONE;
       footstepR.clear();
       footstepL.clear();
       planner->clear();

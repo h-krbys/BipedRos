@@ -100,18 +100,15 @@ public:
     com.y() = initIcpY;
     icp.y() = initIcpY;
 
-    printf("%lf,%lf\n", initIcpX, initIcpY);
-
     copRef = cop;
     icpRef = icp;
   }
 
   void step(){
     // cop     = copMod;
-    com    += comVel * dt;
-    com.z() = h;
-    comVel += comAcc * dt;
-    // comVel     = ( icp - com ) * omega;
+    com       += comVel * dt;
+    com.z()    = h;
+    comVel    += comAcc * dt;
     comVel.z() = 0.0;
     comAcc     = omega * omega * ( com - cop ) + force / ioBody->mass();
     comAcc.z() = 0.0;

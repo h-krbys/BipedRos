@@ -1,3 +1,5 @@
+#define ENABLE_JOY false
+
 #include <cnoid/BipedControl>
 #include <cnoid/SimpleController>
 #include <cnoid/JointPath>
@@ -163,8 +165,6 @@ public:
   }
 
   void joyCallback(const sensor_msgs::Joy::ConstPtr &joy){
-    // force.x() = 100 * ( joy->buttons[13] - joy->buttons[14] );
-    // force.y() = 100 * ( joy->buttons[15] - joy->buttons[16] );
     force.x() = 300 * joy->axes[7];
     force.y() = 300 * joy->axes[6];
     force.z() = 0.0;
@@ -225,10 +225,14 @@ public:
 
   virtual bool start() override
   {
-    startPublisher = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 1);
-    goalPublisher  = nh.advertise<geometry_msgs::PoseStamped>("/goal", 1);
-    // joySubscriber      = nh.subscribe<sensor_msgs::Joy>("/joy", 10, &CaptWalk::joyCallback, this);
+    startPublisher     = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 1);
+    goalPublisher      = nh.advertise<geometry_msgs::PoseStamped>("/goal", 1);
     footstepSubscriber = nh.subscribe<nav_msgs::Path>("/footstep_planner/path", 10, &CaptWalk::footstepCallback, this);
+
+    if(ENABLE_JOY) {
+      joySubscriber = nh.subscribe<sensor_msgs::Joy>("/joy", 10, &CaptWalk::joyCallback, this);
+    }
+
     return true;
   }
 
@@ -313,16 +317,17 @@ public:
       }
       break;
     case DSP:
-      // printf("------------------------\n");
+      printf("------ DSP ");
 
       // support foot exchange
       if(supportFoot == Capt::Foot::FOOT_R) {
         supportFoot = Capt::Foot::FOOT_L;
+        printf("(RL) ------\n");
       }else{
         supportFoot = Capt::Foot::FOOT_R;
+        printf("(LR) ------\n");
       }
 
-      printf("DSP\n");
       elapsed        = 0.0;
       state.footstep = footstep;
       state.icp      = icp;
@@ -352,32 +357,31 @@ public:
         substitute(monitor->getCaptureRegion(), &gridMap);
         footstepR = monitor->getFootstepR();
         footstepL = monitor->getFootstepL();
-        // printf("monitor: success\n");
+        printf("monitor: success\n");
       }else if(statusMonitor == Capt::Status::FAIL) {
-        // printf("monitor: fail   , ");
+        // printf("monitor: fail\n");
       }else{
-        // printf("monitor: finish , ");
+        printf("monitor: finish\n");
         phase = STOP;
         break;
       }
-      // statusMonitor = Capt::Status::FAIL;
 
       // planner
       if(statusMonitor == Capt::Status::FAIL) {
         planner->set(state);
         statusPlanner = planner->plan();
         if(statusPlanner == Capt::Status::SUCCESS) {
-          // printf("planner: success\n");
+          printf("planner: success\n");
           input = planner->get();
           substitute(planner->getCaptureRegion(), &gridMap);
           footstepR = planner->getFootstepR();
           footstepL = planner->getFootstepL();
         }else if(statusPlanner == Capt::Status::FAIL) {
-          // printf("planner: fail\n");
+          printf("planner: fail\n");
           phase = STOP;
           break;
         }else{
-          // printf("planner: finish\n");
+          printf("planner: finish\n");
           phase = STOP;
           break;
         }
@@ -398,8 +402,14 @@ public:
     case SSP:
       count++;
       if(count % 10 == 0 && input.duration - elapsed > 0.10) {
-        printf("-------------\n");
-        // printf("------ SSP ------\n");
+        printf("------ SSP ");
+
+        // support foot
+        if(supportFoot == Capt::Foot::FOOT_R) {
+          printf("(R) ------\n");
+        }else{
+          printf("(L) ------\n");
+        }
 
         state.icp     = icp;
         state.rfoot   = footR;
@@ -415,20 +425,18 @@ public:
           substitute(monitor->getCaptureRegion(), &gridMap);
           footstepR = monitor->getFootstepR();
           footstepL = monitor->getFootstepL();
-          // printf("monitor: success\n");
+          printf("monitor: success\n");
         }else if(statusMonitor == Capt::Status::FAIL) {
-          // printf("monitor: fail   , ");
+          // printf("monitor: fail\n");
         }else{
-          // printf("monitor: finish , ");
+          printf("monitor: finish\n");
           phase = STOP;
           break;
         }
-        // statusMonitor = Capt::Status::FAIL;
 
         // planner
         if(statusMonitor == Capt::Status::FAIL) {
           planner->set(state);
-          printf("start planner\n");
           statusPlanner = planner->plan();
           if(statusPlanner == Capt::Status::SUCCESS) {
             input = planner->get();
@@ -510,13 +518,35 @@ public:
       }
     }
 
-    // double duration = 0.01;
-    if(5.5 <= t && t <= 6) {
-      // simulation 1
-      // force.x() = -2000;
-      // simulation 2
-      // force.y() = 5000;
-      // simulation 3
+    if(!ENABLE_JOY) {
+      // double duration = 0.01;
+      if(5.5 <= t && t <= 6) {
+        // simulation 1
+        // force.x() = -2000;
+        // simulation 2
+        // force.y() = 5000;
+        // simulation 3
+        //   // force.x() = -2000;
+        //   // force.y() =  2000;
+        //   // simulation 4, 5
+        //   // force.x() = -3000;
+        //   // force.y() =  500;
+        //   // simulation 6
+        //   // force.x() = 300;
+        //   // force.x() = 150;
+        //   // force.y() = -60
+        force.x() = -200 * 1.5 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
+        force.y() = +100 * 1.5 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
+      }else{
+        force.x() = 0;
+        force.y() = 0;
+      }
+      // if(5.5 <= t && t <= 6.5) {
+      //   // simulation 1
+      //   // force.x() = -2000;
+      //   // simulation 2
+      //   // force.y() = 5000;
+      //   // simulation 3
       //   // force.x() = -2000;
       //   // force.y() =  2000;
       //   // simulation 4, 5
@@ -524,33 +554,13 @@ public:
       //   // force.y() =  500;
       //   // simulation 6
       //   // force.x() = 300;
-      //   // force.x() = 150;
-      //   // force.y() = -60
-      force.x() = -200 * 1.5 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
-      force.y() = +100 * 1.5 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
-    }else{
-      force.x() = 0;
-      force.y() = 0;
+      //   force.x() = 50;
+      //   force.y() = 50;
+      // }else{
+      //   force.x() = 0;
+      //   force.y() = 0;
+      // }
     }
-    // if(5.5 <= t && t <= 6.5) {
-    //   // simulation 1
-    //   // force.x() = -2000;
-    //   // simulation 2
-    //   // force.y() = 5000;
-    //   // simulation 3
-    //   // force.x() = -2000;
-    //   // force.y() =  2000;
-    //   // simulation 4, 5
-    //   // force.x() = -3000;
-    //   // force.y() =  500;
-    //   // simulation 6
-    //   // force.x() = 300;
-    //   force.x() = 50;
-    //   force.y() = 50;
-    // }else{
-    //   force.x() = 0;
-    //   force.y() = 0;
-    // }
 
     step();
 

@@ -1,4 +1,5 @@
-#define ENABLE_JOY false
+#define ENABLE_JOY  true
+#define FORCE_SCALE 300
 
 #include <cnoid/BipedControl>
 #include <cnoid/SimpleController>
@@ -21,7 +22,7 @@ const double dgain = 0.0;
 namespace {
 
 enum SufPhase {
-  INIT, WAIT, DSP, SSP, STOP
+  INIT, WAIT, DSP, SSP, STOP, FAIL
 };
 
 }
@@ -165,8 +166,8 @@ public:
   }
 
   void joyCallback(const sensor_msgs::Joy::ConstPtr &joy){
-    force.x() = 300 * joy->axes[7];
-    force.y() = 300 * joy->axes[6];
+    force.x() = FORCE_SCALE * joy->axes[7];
+    force.y() = FORCE_SCALE * joy->axes[6];
     force.z() = 0.0;
   }
 
@@ -378,7 +379,7 @@ public:
           footstepL = planner->getFootstepL();
         }else if(statusPlanner == Capt::Status::FAIL) {
           printf("planner: fail\n");
-          phase = STOP;
+          phase = FAIL;
           break;
         }else{
           printf("planner: finish\n");
@@ -446,7 +447,7 @@ public:
             printf("planner: success\n");
           }else if(statusPlanner == Capt::Status::FAIL) {
             printf("planner: fail\n");
-            phase = STOP;
+            phase = FAIL;
             break;
           }else{
             printf("planner: finish\n");
@@ -473,6 +474,17 @@ public:
       break;
     case STOP:
       supportFoot = Capt::Foot::FOOT_NONE;
+      footstepR.clear();
+      footstepL.clear();
+      planner->clear();
+      gridMap.clear();
+      if(fpTime) {
+        fclose(fpTime);
+        fpTime = NULL;
+      }
+      copRef = icp;
+      break;
+    case FAIL:
       footstepR.clear();
       footstepL.clear();
       planner->clear();
@@ -519,47 +531,23 @@ public:
     }
 
     if(!ENABLE_JOY) {
-      // double duration = 0.01;
-      if(5.5 <= t && t <= 6) {
-        // simulation 1
-        // force.x() = -2000;
-        // simulation 2
-        // force.y() = 5000;
-        // simulation 3
-        //   // force.x() = -2000;
-        //   // force.y() =  2000;
-        //   // simulation 4, 5
-        //   // force.x() = -3000;
-        //   // force.y() =  500;
-        //   // simulation 6
-        //   // force.x() = 300;
-        //   // force.x() = 150;
-        //   // force.y() = -60
-        force.x() = -200 * 1.5 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
-        force.y() = +100 * 1.5 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
-      }else{
-        force.x() = 0;
-        force.y() = 0;
-      }
-      // if(5.5 <= t && t <= 6.5) {
+      // if(5.5 <= t && t <= 5.5 + duration) {
       //   // simulation 1
       //   // force.x() = -2000;
       //   // simulation 2
       //   // force.y() = 5000;
-      //   // simulation 3
-      //   // force.x() = -2000;
-      //   // force.y() =  2000;
-      //   // simulation 4, 5
-      //   // force.x() = -3000;
-      //   // force.y() =  500;
-      //   // simulation 6
-      //   // force.x() = 300;
-      //   force.x() = 50;
-      //   force.y() = 50;
       // }else{
       //   force.x() = 0;
       //   force.y() = 0;
       // }
+      if(5.5 <= t && t <= 6) {
+        // simulation 3
+        force.x() = -300 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
+        force.y() = +200 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
+      }else{
+        force.x() = 0;
+        force.y() = 0;
+      }
     }
 
     step();
@@ -579,6 +567,7 @@ public:
     publisher.setGridMap(gridMap);
     publisher.simulation(t);
 
+    // global replanning
     // if( ( (int)( t * 1000 ) ) % ( 1000 )  == 0) {
     //   Vector3 center = ( footR + footL ) / 2;
     //   startPublish(Vector3(center.x(), center.y(), 0.0 ) );

@@ -252,17 +252,19 @@ public:
     }
 
     // set capturability parameters
-    model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
-    param         = new Capt::Param("/home/dl-box/study/capturability/data/valkyrie_xy.xml");
-    config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
-    grid          = new Capt::Grid(param);
-    capturability = new Capt::Capturability(grid);
-    capturability->loadBasin("/home/dl-box/study/capturability/build/bin/cpu/Basin.csv");
-    capturability->loadNstep("/home/dl-box/study/capturability/build/bin/cpu/Nstep.csv");
-    generator  = new Capt::Generator(model);
-    monitor    = new Capt::Monitor(model, grid, capturability);
-    planner    = new Capt::Planner(model, param, config, grid, capturability);
-    trajectory = new Capt::Trajectory(model);
+    if(!model) {
+      model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
+      param         = new Capt::Param("/home/dl-box/study/capturability/data/valkyrie_xy.xml");
+      config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
+      grid          = new Capt::Grid(param);
+      capturability = new Capt::Capturability(grid);
+      capturability->loadBasin("/home/dl-box/study/capturability/build/bin/cpu/Basin.csv");
+      capturability->loadNstep("/home/dl-box/study/capturability/build/bin/cpu/Nstep.csv");
+      generator  = new Capt::Generator(model);
+      monitor    = new Capt::Monitor(model, grid, capturability);
+      planner    = new Capt::Planner(model, param, config, grid, capturability);
+      trajectory = new Capt::Trajectory(model);
+    }
 
     // biped control
     icpTracker = new IcpTracker(model, config);
@@ -275,13 +277,19 @@ public:
     model->read(&omega, "omega");
     model->read(&h, "com_height");
 
-    gridMap.clear();
-
     phase   = INIT;
     t       = 0.0;
     elapsed = 0.0;
 
+    publisher.initialize();
     publisher.setTimeStep(dt);
+
+    init();
+    footstepR.clear();
+    footstepL.clear();
+    planner->clear();
+    gridMap.clear();
+    supportFoot = Capt::Foot::FOOT_NONE;
 
     return true;
   }

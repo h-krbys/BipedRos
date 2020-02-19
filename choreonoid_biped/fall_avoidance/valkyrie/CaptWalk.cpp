@@ -90,25 +90,17 @@ class CaptWalk : public SimpleController
 
 public:
   void init(){
-    cop       = Vector3::Zero();
-    com       = Vector3::Zero();
-    com.z()   = h;
-    comVel    = Vector3::Zero();
-    comAcc    = Vector3::Zero();
-    icp       = Vector3::Zero();
-    footR     = Vector3::Zero();
-    footR.y() = -0.2;
-    footL     = Vector3::Zero();
-    footL.y() = +0.2;
-    force     = Vector3::Zero();
+    double initIcpX = footstep[1].icp.x();
+    double initIcpY = footstep[1].icp.y();
+    cop.x() = initIcpX;
+    com.x() = initIcpX;
+    icp.x() = initIcpX;
 
-    cop.x() = 0.046;
-    com.x() = 0.046;
-    icp.x() = 0.046;
+    cop.y() = initIcpY;
+    com.y() = initIcpY;
+    icp.y() = initIcpY;
 
-    cop.y() = -0.077;
-    com.y() = -0.077;
-    icp.y() = -0.077;
+    printf("%lf,%lf\n", initIcpX, initIcpY);
 
     copRef = cop;
     icpRef = icp;
@@ -188,7 +180,7 @@ public:
     footstep.push_back(step);
     footstepRef.push_back(step.pos);
 
-    // footstep
+    // footstep for walk
     for(size_t i = 0; i < path->poses.size(); i++) {
       geometry_msgs::Pose pose = path->poses[i].pose;
       if( ( (int)i % 2 ) == 0) {
@@ -204,24 +196,25 @@ public:
       footstepRef.push_back(step.pos);
     }
 
-    // for(size_t i = 0; i < footstep.size(); i++) {
-    //   printf("%2d \n", (int)i);
-    //   if( footstep[i].suf == Capt::Foot::FOOT_L) {
-    //     printf("  suf: L\n");
+    // footstep for stamp
+    // for(size_t i = 0; i < path->poses.size(); i++) {
+    //   if( ( (int)i % 2 ) == 0) {
+    //     step.suf     = Capt::Foot::FOOT_L;
+    //     step.pos.y() = +0.2;
     //   }else{
-    //     printf("  suf: R\n");
+    //     step.suf     = Capt::Foot::FOOT_R;
+    //     step.pos.y() = -0.2;
     //   }
-    //   printf("  pos: %1.3lf, %1.3lf\n", footstep[i].pos.x(), footstep[i].pos.y() );
+    //   step.pos.x() = 0;
+    //   step.pos.z() = 0;
+    //
+    //   footstep.push_back(step);
+    //   footstepRef.push_back(step.pos);
     // }
 
     generator->calc(&footstep);
     // footstep.pop_back();
     // footstepRef.pop_back();
-    // for(size_t i = 0; i < footstep.size(); i++) {
-    //   printf("%d\n", (int)i);
-    //   printf("  cop: %1.3lf, %1.3lf\n", footstep[i].cop.x(), footstep[i].cop.y() );
-    //   printf("  icp: %1.3lf, %1.3lf\n", footstep[i].icp.x(), footstep[i].icp.y() );
-    // }
   }
 
   virtual bool start() override
@@ -289,12 +282,23 @@ public:
     publisher.initialize();
     publisher.setTimeStep(dt);
 
-    init();
     footstepR.clear();
     footstepL.clear();
     planner->clear();
     gridMap.clear();
     supportFoot = Capt::Foot::FOOT_NONE;
+
+    cop       = Vector3::Zero();
+    com       = Vector3::Zero();
+    com.z()   = h;
+    comVel    = Vector3::Zero();
+    comAcc    = Vector3::Zero();
+    icp       = Vector3::Zero();
+    footR     = Vector3::Zero();
+    footR.y() = -0.2;
+    footL     = Vector3::Zero();
+    footL.y() = +0.2;
+    force     = Vector3::Zero();
 
     return true;
   }
@@ -304,7 +308,6 @@ public:
 
     switch( phase ) {
     case INIT:
-      init();
       if(t > 1.0) {
         startPublish(Vector3(0, 0, 0) );
         goalPublish(Vector3(2, 0, 0) );
@@ -313,6 +316,7 @@ public:
       break;
     case WAIT:
       if(t > 2.0) {
+        init();
         phase       = DSP;
         supportFoot = Capt::Foot::FOOT_L;
       }
@@ -550,7 +554,18 @@ public:
       }
     }
 
-    step();
+    // simulation step
+    switch( phase ) {
+    case INIT:
+    case WAIT:
+      break;
+    case DSP:
+    case SSP:
+    case STOP:
+    case FAIL:
+      step();
+      break;
+    }
 
     publisher.setFootstepRef(footstepRef);
     publisher.setFootstepR(footstepR);

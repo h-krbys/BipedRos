@@ -25,6 +25,6 @@
   </node>
 
   <!-- launch choreonoid -->
-  <node name="choreonoid" pkg="choreonoid_ros" type="choreonoid" args="/home/dl-box/cnoid_ws/devel/share/choreonoid-1.8/project/CaptWalkVal.cnoid" output="screen"/>
+  <node name="choreonoid" pkg="choreonoid_ros" type="choreonoid" args="/home/kuribayashi/cnoid_ws/devel/share/choreonoid-1.8/project/CaptStand.cnoid" output="screen"/>
 
 </launch>

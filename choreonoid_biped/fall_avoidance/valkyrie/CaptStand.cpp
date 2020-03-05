@@ -22,7 +22,7 @@ const double dgain = 0.0;
 namespace {
 
 enum SufPhase {
-  INIT, WAIT, DSP, SSP, STOP, FAIL
+  INIT, DSP, SSP, STOP, FAIL
 };
 
 }
@@ -34,12 +34,6 @@ class CaptStand : public SimpleController
   std::vector<double> qref;
   std::vector<double> qold;
   SufPhase            phase;
-  // SwfPhase            phase;
-
-  // ros setting
-  ros::NodeHandle nh;
-  ros::Publisher  startPublisher, goalPublisher;
-  ros::Subscriber joySubscriber, footstepSubscriber;
 
   // rviz
   RvizPublisher        publisher;
@@ -90,15 +84,15 @@ class CaptStand : public SimpleController
 
 public:
   void init(){
-    double initIcpX = footstep[1].icp.x();
-    double initIcpY = footstep[1].icp.y();
-    cop.x() = initIcpX;
-    com.x() = initIcpX;
-    icp.x() = initIcpX;
+    footR << 0, -0.2, 0;
+    footL << 0, +0.2, 0;
 
-    cop.y() = initIcpY;
-    com.y() = initIcpY;
-    icp.y() = initIcpY;
+    cop = footR;
+    com = footR;
+    icp = footR;
+
+    comVel.x() = -0.0;
+    comVel.y() = +0.5;
 
     copRef = cop;
     icpRef = icp;
@@ -124,40 +118,6 @@ public:
       data.nstep = from[i].nstep;
       to->push_back(data);
     }
-  }
-
-  void startPublish(Vector3 pos){
-    geometry_msgs::PoseWithCovarianceStamped startPose;
-    startPose.header.frame_id         = "map";
-    startPose.header.stamp            = ros::Time::now();
-    startPose.pose.pose.position.x    = pos.x();
-    startPose.pose.pose.position.y    = pos.y();
-    startPose.pose.pose.position.z    = pos.z();
-    startPose.pose.pose.orientation.x = 0;
-    startPose.pose.pose.orientation.y = 0;
-    startPose.pose.pose.orientation.z = 0;
-    startPose.pose.pose.orientation.w = 1;
-    startPublisher.publish(startPose);
-  }
-
-  void goalPublish(Vector3 pos){
-    geometry_msgs::PoseStamped goalPose;
-    goalPose.header.frame_id    = "map";
-    goalPose.header.stamp       = ros::Time::now();
-    goalPose.pose.position.x    = pos.x();
-    goalPose.pose.position.y    = pos.y();
-    goalPose.pose.position.z    = pos.z();
-    goalPose.pose.orientation.x = 0;
-    goalPose.pose.orientation.y = 0;
-    goalPose.pose.orientation.z = 0;
-    goalPose.pose.orientation.w = 1;
-    goalPublisher.publish(goalPose);
-  }
-
-  void joyCallback(const sensor_msgs::Joy::ConstPtr &joy){
-    force.x() = FORCE_SCALE * joy->axes[7];
-    force.y() = FORCE_SCALE * joy->axes[6];
-    force.z() = 0.0;
   }
 
   void footstepCallback( const nav_msgs::Path::ConstPtr &path){
@@ -214,19 +174,6 @@ public:
     // footstepRef.pop_back();
   }
 
-  virtual bool start() override
-  {
-    startPublisher     = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 1);
-    goalPublisher      = nh.advertise<geometry_msgs::PoseStamped>("/goal", 1);
-    footstepSubscriber = nh.subscribe<nav_msgs::Path>("/footstep_planner/path", 10, &CaptStand::footstepCallback, this);
-
-    if(ENABLE_JOY) {
-      joySubscriber = nh.subscribe<sensor_msgs::Joy>("/joy", 10, &CaptStand::joyCallback, this);
-    }
-
-    return true;
-  }
-
   virtual bool initialize(SimpleControllerIO* io) override
   {
     ioBody = io->body();
@@ -257,23 +204,14 @@ public:
       capturability->loadNstep("/home/kuribayashi/Capturability/cartesian/build/bin/cpu/1step.csv", 1);
       capturability->loadNstep("/home/kuribayashi/Capturability/cartesian/build/bin/cpu/2step.csv", 2);
       capturability->loadNstep("/home/kuribayashi/Capturability/cartesian/build/bin/cpu/3step.csv", 3);
-      printf("0\n");
-      generator = new Capt::Generator(model, param);
-      printf("1\n");
-      monitor = new Capt::Monitor(model, param, grid, capturability);
-      printf("2\n");
-      planner = new Capt::Planner(model, param, config, grid, capturability);
-      printf("3\n");
+      generator  = new Capt::Generator(model, param);
+      monitor    = new Capt::Monitor(model, param, grid, capturability);
+      planner    = new Capt::Planner(model, param, config, grid, capturability);
       trajectory = new Capt::Trajectory(model, param);
-      printf("4\n");
     }
-
-    printf("5\n");
 
     // biped control
     icpTracker = new IcpTracker(model, config);
-
-    printf("6\n");
 
     // timer
     timer  = new Capt::Timer();
@@ -316,29 +254,17 @@ public:
 
     switch( phase ) {
     case INIT:
-      if(t > 1.0) {
-        startPublish(Vector3(0, 0, 0) );
-        goalPublish(Vector3(2, 0, 0) );
-        phase = WAIT;
-      }
-      break;
-    case WAIT:
-      if(t > 2.0) {
-        init();
-        phase       = DSP;
-        supportFoot = Capt::Foot::FOOT_L;
-      }
+      init();
+      phase = DSP;
       break;
     case DSP:
-      printf("------ DSP ");
-
       // support foot exchange
       if(supportFoot == Capt::Foot::FOOT_R) {
         supportFoot = Capt::Foot::FOOT_L;
-        printf("(RL) ------\n");
+        printf("------ DSP (RL) ------\n");
       }else{
         supportFoot = Capt::Foot::FOOT_R;
-        printf("(LR) ------\n");
+        printf("------ DSP (LR) ------\n");
       }
 
       elapsed        = 0.0;
@@ -414,13 +340,11 @@ public:
     case SSP:
       count++;
       if(count % 10 == 0 && input.duration - elapsed > 0.10) {
-        printf("------ SSP ");
-
         // support foot
         if(supportFoot == Capt::Foot::FOOT_R) {
-          printf("(R) ------\n");
+          printf("------ SSP (R) ------\n");
         }else{
-          printf("(L) ------\n");
+          printf("------ SSP (L) ------\n");
         }
 
         state.icp   = icp;
@@ -562,7 +486,6 @@ public:
     // simulation step
     switch( phase ) {
     case INIT:
-    case WAIT:
       break;
     case DSP:
     case SSP:

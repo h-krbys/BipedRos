@@ -65,7 +65,7 @@ void RvizPublisher::initialize(){
 
 void RvizPublisher::save(){
   printf("saving ...\n");
-  FILE *fp = fopen("/home/dl-box/simulation.csv", "w");
+  FILE *fp = fopen("/home/kuribayashi/simulation.csv", "w");
   if(fp) {
     fprintf(fp, "%s,", "time");
     fprintf(fp, "%s, %s,", "copRef.x", "copRef.y");

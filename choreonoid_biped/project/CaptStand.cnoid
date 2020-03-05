@@ -96,7 +96,7 @@ items:
               data:
                 isNoDelayMode: false
                 controllerOptions: ""
-                controller: "CaptWalk.so"
+                controller: "CaptStand.so"
                 baseDirectory: "Controller directory"
                 reloading: false
                 exportSymbols: false

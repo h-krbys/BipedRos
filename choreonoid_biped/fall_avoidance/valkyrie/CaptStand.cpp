@@ -248,27 +248,36 @@ public:
 
     // set capturability parameters
     if(!model) {
-      model         = new Capt::Model("/home/dl-box/study/capturability/data/valkyrie.xml");
-      param         = new Capt::Param("/home/dl-box/study/capturability/data/valkyrie_xy.xml");
-      config        = new Capt::Config("/home/dl-box/study/capturability/data/valkyrie_config.xml");
+      model         = new Capt::Model("/home/kuribayashi/Capturability/cartesian/data/valkyrie.xml");
+      param         = new Capt::Param("/home/kuribayashi/Capturability/cartesian/data/valkyrie_xy.xml");
+      config        = new Capt::Config("/home/kuribayashi/Capturability/cartesian/data/valkyrie_config.xml");
       grid          = new Capt::Grid(param);
       capturability = new Capt::Capturability(grid);
-      capturability->loadBasin("/home/dl-box/study/capturability/build/bin/cpu/Basin.csv");
-      capturability->loadNstep("/home/dl-box/study/capturability/build/bin/cpu/1step.csv", 1);
-      capturability->loadNstep("/home/dl-box/study/capturability/build/bin/cpu/2step.csv", 2);
-      capturability->loadNstep("/home/dl-box/study/capturability/build/bin/cpu/3step.csv", 3);
-      generator  = new Capt::Generator(model, param);
-      monitor    = new Capt::Monitor(model, param, grid, capturability);
-      planner    = new Capt::Planner(model, param, config, grid, capturability);
+      capturability->loadBasin("/home/kuribayashi/Capturability/cartesian/build/bin/cpu/Basin.csv");
+      capturability->loadNstep("/home/kuribayashi/Capturability/cartesian/build/bin/cpu/1step.csv", 1);
+      capturability->loadNstep("/home/kuribayashi/Capturability/cartesian/build/bin/cpu/2step.csv", 2);
+      capturability->loadNstep("/home/kuribayashi/Capturability/cartesian/build/bin/cpu/3step.csv", 3);
+      printf("0\n");
+      generator = new Capt::Generator(model, param);
+      printf("1\n");
+      monitor = new Capt::Monitor(model, param, grid, capturability);
+      printf("2\n");
+      planner = new Capt::Planner(model, param, config, grid, capturability);
+      printf("3\n");
       trajectory = new Capt::Trajectory(model, param);
+      printf("4\n");
     }
+
+    printf("5\n");
 
     // biped control
     icpTracker = new IcpTracker(model, config);
 
+    printf("6\n");
+
     // timer
     timer  = new Capt::Timer();
-    fpTime = fopen("/home/dl-box/computation.csv", "w");
+    fpTime = fopen("/home/kuribayashi/computation.csv", "w");
     fprintf(fpTime, "time, computation\n");
 
     model->read(&omega, "omega");

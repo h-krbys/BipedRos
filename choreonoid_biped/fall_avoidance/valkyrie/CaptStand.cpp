@@ -81,8 +81,8 @@ class CaptStand : public SimpleController
 
 public:
   void init(){
-    footR << 0, -0.2, 0;
-    footL << 0, +0.2, 0;
+    footR << 0, -0.15, 0;
+    footL << 0, +0.15, 0;
 
     cop = footR;
     com = footR;
@@ -91,8 +91,8 @@ public:
     copRef = cop;
     icpRef = icp;
 
-    comVel.x() = 0.5;
-    comVel.y() = 0.1;
+    comVel.x() = 0.4;
+    comVel.y() = 0.0;
 
     // calc reference footstep
     Capt::Step step;
@@ -279,14 +279,15 @@ public:
         planner->set(state);
         statusPlanner = planner->plan();
         if(statusPlanner == Capt::Status::SUCCESS) {
-          input = planner->get();
+          elapsed = 0.0;
+          input   = planner->get();
           substitute(planner->getCaptureRegion(), &gridMap);
           footstepR = planner->getFootstepR();
           footstepL = planner->getFootstepL();
           printf("planner: success\n");
         }else if(statusPlanner == Capt::Status::FAIL) {
           printf("planner: fail\n");
-          phase = FAIL;
+          // phase = FAIL;
           break;
         }else{
           printf("planner: finish\n");

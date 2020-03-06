@@ -92,6 +92,25 @@ public:
     icpRef = icp;
 
     comVel.x() = 0.5;
+    comVel.y() = 0.5;
+
+    // calc reference footstep
+    Capt::Step step;
+    for(int i = 0; i < 10; i++) {
+      if(i % 2 == 0) {
+        step.suf = Capt::Foot::FOOT_R;
+        step.pos = footR;
+        footstep.push_back(step);
+        footstepRef.push_back(step.pos);
+      }else{
+        step.suf = Capt::Foot::FOOT_L;
+        step.pos = footL;
+        footstep.push_back(step);
+        footstepRef.push_back(step.pos);
+      }
+    }
+
+    generator->calc(&footstep);
   }
 
   void step(){
@@ -113,60 +132,6 @@ public:
       data.nstep = from[i].nstep;
       to->push_back(data);
     }
-  }
-
-  void footstepCallback( const nav_msgs::Path::ConstPtr &path){
-    footstep.clear();
-    footstepRef.clear();
-
-    Capt::Step step;
-
-    // initial stance foot
-    step.suf = Capt::Foot::FOOT_L;
-    step.pos = footL;
-    footstep.push_back(step);
-    footstepRef.push_back(step.pos);
-
-    step.suf = Capt::Foot::FOOT_R;
-    step.pos = footR;
-    footstep.push_back(step);
-    footstepRef.push_back(step.pos);
-
-    // footstep for walk
-    for(size_t i = 0; i < path->poses.size(); i++) {
-      geometry_msgs::Pose pose = path->poses[i].pose;
-      if( ( (int)i % 2 ) == 0) {
-        step.suf = Capt::Foot::FOOT_L;
-      }else{
-        step.suf = Capt::Foot::FOOT_R;
-      }
-      step.pos.x() = pose.position.x;
-      step.pos.y() = pose.position.y;
-      step.pos.z() = pose.position.z;
-
-      footstep.push_back(step);
-      footstepRef.push_back(step.pos);
-    }
-
-    // footstep for stamp
-    // for(size_t i = 0; i < path->poses.size(); i++) {
-    //   if( ( (int)i % 2 ) == 0) {
-    //     step.suf     = Capt::Foot::FOOT_L;
-    //     step.pos.y() = +0.2;
-    //   }else{
-    //     step.suf     = Capt::Foot::FOOT_R;
-    //     step.pos.y() = -0.2;
-    //   }
-    //   step.pos.x() = 0;
-    //   step.pos.z() = 0;
-    //
-    //   footstep.push_back(step);
-    //   footstepRef.push_back(step.pos);
-    // }
-
-    generator->calc(&footstep);
-    // footstep.pop_back();
-    // footstepRef.pop_back();
   }
 
   virtual bool initialize(SimpleControllerIO* io) override
@@ -238,7 +203,7 @@ public:
     switch( phase ) {
     case INIT:
       init();
-      phase = STOP;
+      phase = DSP;
       break;
     case DSP:
       // support foot exchange

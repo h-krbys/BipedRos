@@ -315,7 +315,7 @@ views:
     mounted: true
 toolbars:
   "TimeBar":
-    minTime: 2
+    minTime: 0
     maxTime: 5
     frameRate: 100
     playbackFrameRate: 60

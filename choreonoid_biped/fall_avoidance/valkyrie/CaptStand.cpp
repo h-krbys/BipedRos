@@ -43,11 +43,11 @@ class CaptStand : public SimpleController
   Capt::Grid          *grid;
   Capt::Capturability *capturability;
   Capt::Generator     *generator;
-  Capt::Monitor       *monitor;
-  Capt::Planner       *planner;
-  Capt::Trajectory    *trajectory;
-  double               omega, h;
-  Capt::Foot           supportFoot;
+  // Capt::Monitor       *monitor;
+  Capt::Planner    *planner;
+  Capt::Trajectory *trajectory;
+  double            omega, h;
+  Capt::Foot        supportFoot;
 
   // biped control
   IcpTracker *icpTracker;
@@ -72,7 +72,7 @@ class CaptStand : public SimpleController
   // loop counter
   int count;
 
-  Capt::Status statusMonitor, statusPlanner;
+  Capt::Status statusPlanner;
 
   // timer
   Capt::Timer *timer;
@@ -92,7 +92,7 @@ public:
     icpRef = icp;
 
     comVel.x() = 0.5;
-    comVel.y() = 0.5;
+    comVel.y() = 0.1;
 
     // calc reference footstep
     Capt::Step step;
@@ -164,8 +164,8 @@ public:
       capturability->loadNstep("/home/kuribayashi/Capturability/cartesian/build/bin/cpu/1step.csv", 1);
       capturability->loadNstep("/home/kuribayashi/Capturability/cartesian/build/bin/cpu/2step.csv", 2);
       capturability->loadNstep("/home/kuribayashi/Capturability/cartesian/build/bin/cpu/3step.csv", 3);
-      generator  = new Capt::Generator(model, param);
-      monitor    = new Capt::Monitor(model, param, grid, capturability);
+      generator = new Capt::Generator(model, param);
+      // monitor    = new Capt::Monitor(model, param, grid, capturability);
       planner    = new Capt::Planner(model, param, config, grid, capturability);
       trajectory = new Capt::Trajectory(model, param);
     }
@@ -221,57 +221,29 @@ public:
       state.rfoot    = footR;
       state.lfoot    = footL;
       state.s_suf    = supportFoot;
-      // printf("icp      %1.3lf, %1.3lf, %1.3lf\n", icp.x(), icp.y(), icp.z() );
-      // printf("footR    %1.3lf, %1.3lf, %1.3lf\n", footR.x(), footR.y(), footR.z() );
-      // printf("footL    %1.3lf, %1.3lf, %1.3lf\n", footL.x(), footL.y(), footL.z() );
-      // printf("elapsed  %1.3lf\n", elapsed );
-
-      // planner->set(state);
-      // if(planner->plan() ) {
-      //   input = planner->get();
-      // }else{
-      //   phase = STOP;
-      //   break;
-      // }
 
       timer->start();
-      // monitor
-      statusMonitor = monitor->check(state, footstep);
-      if(statusMonitor == Capt::Status::SUCCESS) {
-        planner->clear();
-        input = monitor->get();
-        substitute(monitor->getCaptureRegion(), &gridMap);
-        footstepR = monitor->getFootstepR();
-        footstepL = monitor->getFootstepL();
-        printf("monitor: success\n");
-      }else if(statusMonitor == Capt::Status::FAIL) {
-        // printf("monitor: fail\n");
+
+      // planner
+      planner->clear();
+      planner->set(state);
+      statusPlanner = planner->plan();
+      if(statusPlanner == Capt::Status::SUCCESS) {
+        printf("planner: success\n");
+        input = planner->get();
+        substitute(planner->getCaptureRegion(), &gridMap);
+        footstepR = planner->getFootstepR();
+        footstepL = planner->getFootstepL();
+      }else if(statusPlanner == Capt::Status::FAIL) {
+        printf("planner: fail\n");
+        phase = FAIL;
+        break;
       }else{
-        printf("monitor: finish\n");
+        printf("planner: finish\n");
         phase = STOP;
         break;
       }
 
-      // planner
-      if(statusMonitor == Capt::Status::FAIL) {
-        planner->set(state);
-        statusPlanner = planner->plan();
-        if(statusPlanner == Capt::Status::SUCCESS) {
-          printf("planner: success\n");
-          input = planner->get();
-          substitute(planner->getCaptureRegion(), &gridMap);
-          footstepR = planner->getFootstepR();
-          footstepL = planner->getFootstepL();
-        }else if(statusPlanner == Capt::Status::FAIL) {
-          printf("planner: fail\n");
-          phase = FAIL;
-          break;
-        }else{
-          printf("planner: finish\n");
-          phase = STOP;
-          break;
-        }
-      }
       timer->end();
       timer->print();
       fprintf(fpTime, "%lf, %lf\n", t, timer->get() );
@@ -301,42 +273,27 @@ public:
         state.s_suf = supportFoot;
 
         timer->start();
-        statusMonitor = monitor->check(state, footstep);
-        if(statusMonitor == Capt::Status::SUCCESS) {
-          planner->clear();
-          input = monitor->get();
-          substitute(monitor->getCaptureRegion(), &gridMap);
-          footstepR = monitor->getFootstepR();
-          footstepL = monitor->getFootstepL();
-          printf("monitor: success\n");
-        }else if(statusMonitor == Capt::Status::FAIL) {
-          // printf("monitor: fail\n");
+
+        // planner
+        planner->clear();
+        planner->set(state);
+        statusPlanner = planner->plan();
+        if(statusPlanner == Capt::Status::SUCCESS) {
+          input = planner->get();
+          substitute(planner->getCaptureRegion(), &gridMap);
+          footstepR = planner->getFootstepR();
+          footstepL = planner->getFootstepL();
+          printf("planner: success\n");
+        }else if(statusPlanner == Capt::Status::FAIL) {
+          printf("planner: fail\n");
+          phase = FAIL;
+          break;
         }else{
-          printf("monitor: finish\n");
+          printf("planner: finish\n");
           phase = STOP;
           break;
         }
 
-        // planner
-        if(statusMonitor == Capt::Status::FAIL) {
-          planner->set(state);
-          statusPlanner = planner->plan();
-          if(statusPlanner == Capt::Status::SUCCESS) {
-            input = planner->get();
-            substitute(planner->getCaptureRegion(), &gridMap);
-            footstepR = planner->getFootstepR();
-            footstepL = planner->getFootstepL();
-            printf("planner: success\n");
-          }else if(statusPlanner == Capt::Status::FAIL) {
-            printf("planner: fail\n");
-            phase = FAIL;
-            break;
-          }else{
-            printf("planner: finish\n");
-            phase = STOP;
-            break;
-          }
-        }
         timer->end();
         timer->print();
         fprintf(fpTime, "%lf, %lf\n", t, timer->get() );

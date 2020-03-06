@@ -1,6 +1,3 @@
-#define ENABLE_JOY  true
-#define FORCE_SCALE 300
-
 #include <cnoid/BipedControl>
 #include <cnoid/SimpleController>
 #include <cnoid/JointPath>
@@ -91,15 +88,13 @@ public:
     com = footR;
     icp = footR;
 
-    comVel.x() = -0.0;
-    comVel.y() = +0.5;
-
     copRef = cop;
     icpRef = icp;
+
+    comVel.x() = 0.5;
   }
 
   void step(){
-    // cop     = copMod;
     com       += comVel * dt;
     com.z()    = h;
     comVel    += comAcc * dt;
@@ -234,18 +229,6 @@ public:
     gridMap.clear();
     supportFoot = Capt::Foot::FOOT_NONE;
 
-    cop       = Vector3::Zero();
-    com       = Vector3::Zero();
-    com.z()   = h;
-    comVel    = Vector3::Zero();
-    comAcc    = Vector3::Zero();
-    icp       = Vector3::Zero();
-    footR     = Vector3::Zero();
-    footR.y() = -0.2;
-    footL     = Vector3::Zero();
-    footL.y() = +0.2;
-    force     = Vector3::Zero();
-
     return true;
   }
 
@@ -255,16 +238,16 @@ public:
     switch( phase ) {
     case INIT:
       init();
-      phase = DSP;
+      phase = STOP;
       break;
     case DSP:
       // support foot exchange
       if(supportFoot == Capt::Foot::FOOT_R) {
         supportFoot = Capt::Foot::FOOT_L;
-        printf("------ DSP (RL) ------\n");
+        printf("------ DSP (LR) ------\n");
       }else{
         supportFoot = Capt::Foot::FOOT_R;
-        printf("------ DSP (LR) ------\n");
+        printf("------ DSP (RL) ------\n");
       }
 
       elapsed        = 0.0;
@@ -463,37 +446,7 @@ public:
       }
     }
 
-    if(!ENABLE_JOY) {
-      // if(5.5 <= t && t <= 5.5 + duration) {
-      //   // simulation 1
-      //   // force.x() = -2000;
-      //   // simulation 2
-      //   // force.y() = 5000;
-      // }else{
-      //   force.x() = 0;
-      //   force.y() = 0;
-      // }
-      if(5.5 <= t && t <= 6) {
-        // simulation 3
-        force.x() = -300 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
-        force.y() = +200 * sin( ( t - 5.5 ) * 3.14159 / 0.5);
-      }else{
-        force.x() = 0;
-        force.y() = 0;
-      }
-    }
-
-    // simulation step
-    switch( phase ) {
-    case INIT:
-      break;
-    case DSP:
-    case SSP:
-    case STOP:
-    case FAIL:
-      step();
-      break;
-    }
+    step();
 
     publisher.setFootstepRef(footstepRef);
     publisher.setFootstepR(footstepR);
@@ -509,6 +462,8 @@ public:
     publisher.setForce(force);
     publisher.setGridMap(gridMap);
     publisher.simulation(t);
+
+    force = Vector3::Zero();
 
     // global replanning
     // if( ( (int)( t * 1000 ) ) % ( 1000 )  == 0) {

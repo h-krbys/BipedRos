@@ -41,6 +41,7 @@ class CaptStand : public SimpleController
   Capt::Param         *param;
   Capt::Config        *config;
   Capt::Grid          *grid;
+  Capt::Polygon       *polygon;
   Capt::Capturability *capturability;
   Capt::Generator     *generator;
   // Capt::Monitor       *monitor;
@@ -68,6 +69,7 @@ class CaptStand : public SimpleController
   Vector3             force;
   Capt::EnhancedState state;
   Capt::EnhancedInput input;
+  Capt::arr2_t        footConvex;
 
   // loop counter
   int count;
@@ -155,6 +157,7 @@ public:
 
     // set capturability parameters
     if(!model) {
+      polygon       = new Capt::Polygon();
       model         = new Capt::Model("/home/kuribayashi/Capturability/cartesian/data/valkyrie.xml");
       param         = new Capt::Param("/home/kuribayashi/Capturability/cartesian/data/valkyrie_xy.xml");
       config        = new Capt::Config("/home/kuribayashi/Capturability/cartesian/data/valkyrie_config.xml");
@@ -199,20 +202,30 @@ public:
 
   virtual bool control() override
   {
-
     switch( phase ) {
     case INIT:
       init();
+      model->read(&footConvex, "foot_r_convex", Capt::vec3Tovec2(footR) );
       phase = DSP;
       break;
     case DSP:
       // support foot exchange
+      footConvex.clear();
       if(supportFoot == Capt::Foot::FOOT_R) {
-        supportFoot = Capt::Foot::FOOT_L;
         printf("------ DSP (LR) ------\n");
+        supportFoot = Capt::Foot::FOOT_L;
+        model->read(&footConvex, "foot_l_convex", Capt::vec3Tovec2(footL) );
       }else{
-        supportFoot = Capt::Foot::FOOT_R;
         printf("------ DSP (RL) ------\n");
+        supportFoot = Capt::Foot::FOOT_R;
+        model->read(&footConvex, "foot_r_convex", Capt::vec3Tovec2(footR) );
+      }
+
+      if(polygon->inPolygon(Capt::vec3Tovec2(icp), footConvex) ) {
+        phase  = STOP;
+        copRef = icp;
+        icpRef = icp;
+        break;
       }
 
       elapsed        = 0.0;
@@ -308,7 +321,6 @@ public:
       footL  = trajectory->getFootL(elapsed);
       if(elapsed > input.duration) {
         phase = DSP;
-        // phase = STOP;
       }
       break;
     case STOP:
@@ -321,7 +333,6 @@ public:
         fclose(fpTime);
         fpTime = NULL;
       }
-      copRef = icp;
       break;
     case FAIL:
       footstepR.clear();
@@ -340,34 +351,7 @@ public:
 
     icpTracker->set(copRef, icpRef, icp);
     cop = icpTracker->getCopMod();
-    if(supportFoot == Capt::Foot::FOOT_R) {
-      if(cop.x() > 0.125 + footR.x() ) {
-        cop.x() = 0.125 + footR.x();
-      }
-      if(cop.x() < -0.125 + footR.x() ) {
-        cop.x() = -0.125 + footR.x();
-      }
-      if(cop.y() > 0.075 + footR.y() ) {
-        cop.y() = 0.075 + footR.y();
-      }
-      if(cop.y() < -0.075 + footR.y() ) {
-        cop.y() = -0.075 + footR.y();
-      }
-    }
-    if(supportFoot == Capt::Foot::FOOT_L) {
-      if(cop.x() > 0.125 + footL.x() ) {
-        cop.x() = 0.125 + footL.x();
-      }
-      if(cop.x() < -0.125 + footL.x() ) {
-        cop.x() = -0.125 + footL.x();
-      }
-      if(cop.y() > 0.075 + footL.y() ) {
-        cop.y() = 0.075 + footL.y();
-      }
-      if(cop.y() < -0.075 + footL.y() ) {
-        cop.y() = -0.075 + footL.y();
-      }
-    }
+    cop = Capt::vec2Tovec3(polygon->getClosestPoint(Capt::vec3Tovec2(cop), footConvex) );
 
     step();
 
@@ -387,13 +371,6 @@ public:
     publisher.simulation(t);
 
     force = Vector3::Zero();
-
-    // global replanning
-    // if( ( (int)( t * 1000 ) ) % ( 1000 )  == 0) {
-    //   Vector3 center = ( footR + footL ) / 2;
-    //   startPublish(Vector3(center.x(), center.y(), 0.0 ) );
-    //   goalPublish(Vector3(2, 0, 0) );
-    // }
 
     t       += dt;
     elapsed += dt;
